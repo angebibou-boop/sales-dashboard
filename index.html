@@ -722,7 +722,7 @@ function renderHeroKpis() {
   const totalLeads     = sumKey(sorted, 'leads');
   const totalCalls     = sumKey(sorted, 'calls');
   const totalContacted = sumKey(sorted, 'contacted');
-  const totalCloses    = sumKey(sorted, 'closes');
+  const totalCloses    = sumKey(sorted, 'closes_total');
 
   const colors = { blue: '#6b9eff', green: '#34d399', pink: '#f472b6', gold: '#fbbf24' };
 
@@ -739,9 +739,9 @@ function renderHeroKpis() {
       sub: (totalLeads ? (100 * totalContacted / totalLeads).toFixed(1) : '0') + '% of leads',
       spark: sparkline(sorted.map(r => n(r.contacted)), colors.pink) },
     { color: 'gold',  icon: ICONS.trophy, label: 'Closes', value: fmtNum(totalCloses),
-      trend: trendBadge(sumKey(curr, 'closes'),    sumKey(prev, 'closes')),
+      trend: trendBadge(sumKey(curr, 'closes_total'),    sumKey(prev, 'closes_total')),
       sub: (totalLeads ? (100 * totalCloses / totalLeads).toFixed(1) : '0') + '% close rate',
-      spark: sparkline(sorted.map(r => n(r.closes)), colors.gold) },
+      spark: sparkline(sorted.map(r => n(r.closes_total)), colors.gold) },
   ];
 
   document.getElementById('heroKpis').innerHTML = kpis.map(k =>
@@ -765,7 +765,7 @@ function renderMetrics() {
   const totalLeads     = daily.reduce((s,d) => s + n(d.leads), 0);
   const totalCalls     = daily.reduce((s,d) => s + n(d.calls), 0);
   const totalContacted = daily.reduce((s,d) => s + n(d.contacted), 0);
-  const totalCloses    = daily.reduce((s,d) => s + n(d.closes), 0);
+  const totalCloses    = daily.reduce((s,d) => s + n(d.closes_total), 0);
   const daysWithLeads = daily.filter(d => n(d.leads) > 0);
   const avgFirstHrs  = daysWithLeads.length
     ? daysWithLeads.reduce((s,d) => s + n(d.avg_first_call_hours), 0) / daysWithLeads.length
@@ -834,7 +834,7 @@ function renderPieChart() {
   if (pieChart) pieChart.destroy();
   const totalLeads     = state.daily.reduce((s, d) => s + n(d.leads), 0);
   const totalContacted = state.daily.reduce((s, d) => s + n(d.contacted), 0);
-  const totalCloses    = state.daily.reduce((s, d) => s + n(d.closes), 0);
+  const totalCloses    = state.daily.reduce((s, d) => s + n(d.closes_total), 0);
   const notContacted = Math.max(0, totalLeads - totalContacted);
   const contactedNotClosed = Math.max(0, totalContacted - totalCloses);
 
@@ -890,15 +890,32 @@ const LEAD_COLS = [
       return '<div class="row-actions">' + links.join('') + '</div>';
     } },
 ];
+const pct1 = (v) => (v == null ? '—' : n(v).toFixed(1) + '%');
+const num0 = (v) => (v == null ? '—' : n(v).toString());
+const num2 = (v) => (v == null ? '—' : n(v).toFixed(2));
 const DAILY_COLS = [
-  { key: 'stat_date',           label: 'Date',         render: (r) => fmtDate(r.stat_date), num: true },
-  { key: 'leads',               label: 'Leads',        render: (r) => n(r.leads), num: true },
-  { key: 'calls',               label: 'Calls',        render: (r) => n(r.calls), num: true },
-  { key: 'contacted',           label: 'Contacted',    render: (r) => n(r.contacted), num: true },
-  { key: 'contacted_pct',       label: '% Contacted',  render: (r) => n(r.contacted_pct).toFixed(1) + '%', num: true },
-  { key: 'avg_first_call_hours',label: 'Avg 1st Call', render: (r) => n(r.avg_first_call_hours).toFixed(2) + 'h', num: true },
-  { key: 'closes',              label: 'Closes',       render: (r) => n(r.closes), num: true },
-  { key: 'closed_pct',          label: '% Closed',     render: (r) => n(r.closed_pct).toFixed(1) + '%', num: true },
+  { key: 'stat_date',                 label: 'Date',                   render: (r) => fmtDate(r.stat_date), num: true },
+  { key: 'leads',                     label: 'Leads',                  render: (r) => num0(r.leads), num: true },
+  { key: 'calls',                     label: 'Calls',                  render: (r) => num0(r.calls), num: true },
+  { key: 'contacted',                 label: 'Contacted',              render: (r) => num0(r.contacted), num: true },
+  { key: 'contacted_pct',             label: 'Contacted %',            render: (r) => pct1(r.contacted_pct), num: true },
+  { key: 'avg_first_call_hours',      label: 'Avg Time to 1st Call (h)', render: (r) => num2(r.avg_first_call_hours) + 'h', num: true },
+  { key: 'contacted_first_call',      label: 'Contacted on 1st Call',  render: (r) => num0(r.contacted_first_call), num: true },
+  { key: 'contacted_first_call_pct',  label: '% Contacted from 1st Call', render: (r) => pct1(r.contacted_first_call_pct), num: true },
+  { key: 'followup_day1_avg',         label: '# Follow-ups Day 1 (avg)', render: (r) => num2(r.followup_day1_avg), num: true },
+  { key: 'day1_closes',               label: 'Day 1 Closes',           render: (r) => num0(r.day1_closes), num: true },
+  { key: 'day2_calls',                label: '# Calls Day 2',          render: (r) => num0(r.day2_calls), num: true },
+  { key: 'day2_contacted',            label: '# Contacted Day 2',      render: (r) => num0(r.day2_contacted), num: true },
+  { key: 'day2_contacted_pct',        label: '% Contacted Day 2',      render: (r) => pct1(r.day2_contacted_pct), num: true },
+  { key: 'day2_closes',               label: 'Day 2 Closes',           render: (r) => num0(r.day2_closes), num: true },
+  { key: 'day3_calls',                label: '# Calls Day 3',          render: (r) => num0(r.day3_calls), num: true },
+  { key: 'day3_contacted',            label: '# Contacted Day 3',      render: (r) => num0(r.day3_contacted), num: true },
+  { key: 'day3_contacted_pct',        label: '% Contacted Day 3',      render: (r) => pct1(r.day3_contacted_pct), num: true },
+  { key: 'day3_closes',               label: 'Day 3 Closes',           render: (r) => num0(r.day3_closes), num: true },
+  { key: 'contacted_cumulative_pct',  label: '% Contacted Cumulative', render: (r) => pct1(r.contacted_cumulative_pct), num: true },
+  { key: 'closes_after_7d',           label: 'Closes After 7 Days',    render: (r) => num0(r.closes_after_7d), num: true },
+  { key: 'closes_total',              label: 'Closes Total',           render: (r) => num0(r.closes_total), num: true },
+  { key: 'closed_pct',                label: '% Closed',               render: (r) => pct1(r.closed_pct), num: true },
 ];
 const TABS = [
   { id: 'leads', name: 'Leads',       color: '#6b9eff' },
