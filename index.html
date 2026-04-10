@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sales Leads Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     --bg: #0a0c12;
@@ -51,7 +51,8 @@
   body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot, body[data-state="dashboard"] #sent,
   body[data-state="login"] #app, body[data-state="login"] #boot, body[data-state="login"] #sent { display: none; }
   body[data-state="loading"] #boot, body[data-state="login"] #login,
-  body[data-state="sent"] #sent, body[data-state="dashboard"] #app { display: block; }
+  body[data-state="sent"] #sent { display: flex; }
+  body[data-state="dashboard"] #app { display: block; }
   .full-center {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
     padding: 40px 20px;
