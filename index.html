@@ -194,6 +194,33 @@
   }
   .filter-tag:empty { display: none; }
   .main { padding: 28px 32px 56px; max-width: 1500px; margin: 0 auto; }
+  .funnel-tabs {
+    display: flex; gap: 6px; margin-bottom: 22px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 5px; width: fit-content;
+  }
+  .funnel-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px;
+    background: transparent; color: var(--text-muted);
+    border: none; border-radius: 8px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .funnel-tab:hover { color: var(--text); background: var(--surface2); }
+  .funnel-tab.active {
+    background: var(--surface2); color: var(--text);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px var(--border-light);
+  }
+  .funnel-tab.loading { opacity: 0.6; pointer-events: none; }
+  .funnel-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  @media (max-width: 600px) {
+    .funnel-tabs { width: 100%; overflow-x: auto; }
+    .funnel-tab { padding: 8px 14px; font-size: 0.74rem; }
+  }
   .section-label {
     font-size: 0.68rem; text-transform: uppercase;
     letter-spacing: 0.1em; color: var(--text-dim);
@@ -494,6 +521,17 @@
     </div>
   </div>
   <div class="main">
+    <div class="funnel-tabs" id="funnelTabs">
+      <button class="funnel-tab active" data-funnel="all">
+        <span class="funnel-dot" style="background:#6b9eff"></span>All
+      </button>
+      <button class="funnel-tab" data-funnel="Artistic">
+        <span class="funnel-dot" style="background:#34d399"></span>VSL Opt In
+      </button>
+      <button class="funnel-tab" data-funnel="Artisticv2">
+        <span class="funnel-dot" style="background:#f472b6"></span>VSL No Opt In
+      </button>
+    </div>
     <div class="section-label">Performance Overview</div>
     <div class="hero-kpis" id="heroKpis"></div>
     <div class="section-label">Cohort Metrics</div>
@@ -599,7 +637,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 document.getElementById('backBtn').addEventListener('click', () => setState('login'));
 
-let state = { from: null, to: null, daily: [], leads: [] };
+let state = { from: null, to: null, daily: [], leads: [], funnel: null };
+let activeFunnel = 'all';
 let sortCol = -1, sortAsc = true;
 let currentTableRows = [];
 let barChart = null, pieChart = null;
@@ -611,9 +650,11 @@ async function loadData() {
   const params = new URLSearchParams({ api: 'data' });
   if (f) params.set('from', f);
   if (t) params.set('to', t);
+  if (activeFunnel && activeFunnel !== 'all') params.set('funnel', activeFunnel);
 
   const btn = document.getElementById('refetchBtn');
   btn.classList.add('spinning');
+  document.getElementById('funnelTabs').classList.add('loading');
 
   try {
     const r = await fetch(API_BASE + '?' + params.toString(), {
@@ -634,6 +675,7 @@ async function loadData() {
     document.getElementById('heroKpis').innerHTML = '<div class="empty error">Error: ' + (err.message || err) + '</div>';
   } finally {
     btn.classList.remove('spinning');
+    document.getElementById('funnelTabs').classList.remove('loading');
   }
 }
 
@@ -1060,6 +1102,15 @@ function bindAfterAuth() {
   });
   document.getElementById('signoutBtn').addEventListener('click', async () => {
     await supa.auth.signOut();
+  });
+  document.querySelectorAll('.funnel-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.funnel;
+      if (f === activeFunnel) return;
+      activeFunnel = f;
+      document.querySelectorAll('.funnel-tab').forEach(b => b.classList.toggle('active', b === btn));
+      loadData();
+    });
   });
 }
 
