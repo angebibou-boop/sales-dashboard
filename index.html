@@ -45,7 +45,6 @@
     color: var(--text);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    padding-bottom: 48px;
   }
   body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="sent"] #app, body[data-state="sent"] #login,
   body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot, body[data-state="dashboard"] #sent,
@@ -277,6 +276,51 @@
   .metric-text { flex: 1; min-width: 0; }
   .metric-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
   .metric-value { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 12px;
+  }
+  @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 800px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px)  { .stats-grid { grid-template-columns: 1fr; } }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px 14px 18px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .stat-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+    border-radius: 3px 0 0 3px;
+  }
+  .stat-card.sc-blue::before   { background: var(--blue); }
+  .stat-card.sc-green::before  { background: var(--green); }
+  .stat-card.sc-pink::before   { background: var(--pink); }
+  .stat-card.sc-purple::before { background: var(--purple); }
+  .stat-card.sc-gold::before   { background: var(--gold); }
+  .stat-card.sc-cyan::before   { background: var(--cyan); }
+  .stat-label {
+    font-size: 0.64rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-muted);
+    font-weight: 700; line-height: 1.3;
+    display: block; margin-bottom: 6px;
+    min-height: 2.1em;
+  }
+  .stat-value {
+    font-size: 1.35rem; font-weight: 700;
+    letter-spacing: -0.02em; color: var(--text); line-height: 1.1;
+  }
+  .stat-sub {
+    font-size: 0.66rem; color: var(--text-dim); margin-top: 3px;
+  }
+  .section-subhead {
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim);
+    font-weight: 700; margin: 22px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-subhead::before { content: ''; width: 10px; height: 1px; background: var(--text-dim); }
   .charts-row {
     display: grid; grid-template-columns: 2fr 1fr;
     gap: 14px; margin-bottom: 28px;
@@ -376,26 +420,6 @@
     text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.9rem;
   }
   .error { color: var(--red); }
-  .tab-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: rgba(20,24,38,0.92);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--border);
-    display: flex; align-items: stretch; height: 40px;
-    z-index: 100; overflow-x: auto; padding: 0 8px; gap: 2px;
-  }
-  .tab-bar::-webkit-scrollbar { height: 0; }
-  .tab-item {
-    display: flex; align-items: center; padding: 0 18px;
-    font-size: 0.76rem; font-weight: 600; color: var(--text-muted);
-    cursor: pointer; white-space: nowrap;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-    user-select: none;
-  }
-  .tab-item:hover { color: var(--text); background: var(--surface2); }
-  .tab-item.active { color: var(--blue); border-bottom-color: var(--blue); background: var(--surface2); }
-  .tab-item .tab-color { width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; flex-shrink: 0; }
   @media (max-width: 768px) {
     .header { padding: 18px; flex-direction: column; align-items: flex-start; }
     .main { padding: 22px 18px 60px; }
@@ -472,8 +496,15 @@
   <div class="main">
     <div class="section-label">Performance Overview</div>
     <div class="hero-kpis" id="heroKpis"></div>
-    <div class="section-label">Activity Metrics</div>
-    <div class="metrics-row" id="metricsRow"></div>
+    <div class="section-label">Cohort Metrics</div>
+    <div class="section-subhead">First Call / Day 1</div>
+    <div class="stats-grid" id="statsDay1"></div>
+    <div class="section-subhead">Day 2</div>
+    <div class="stats-grid" id="statsDay2"></div>
+    <div class="section-subhead">Day 3</div>
+    <div class="stats-grid" id="statsDay3"></div>
+    <div class="section-subhead">Totals</div>
+    <div class="stats-grid" id="statsTotals"></div>
     <div class="charts-row">
       <div class="chart-card">
         <div class="chart-header">
@@ -510,7 +541,6 @@
       </div>
     </div>
   </div>
-  <div class="tab-bar" id="tabBar"></div>
 </div>
 
 <script>
@@ -573,7 +603,6 @@ let state = { from: null, to: null, daily: [], leads: [] };
 let sortCol = -1, sortAsc = true;
 let currentTableRows = [];
 let barChart = null, pieChart = null;
-let activeTabIdx = 0;
 
 async function loadData() {
   if (!currentSession) return;
@@ -691,7 +720,7 @@ const ICONS = {
 
 function render() {
   renderHeroKpis();
-  renderMetrics();
+  renderStatsGrid();
   renderBarChart();
   renderPieChart();
   renderTable();
@@ -710,7 +739,6 @@ function renderHeroKpis() {
   const daily = state.daily;
   if (!daily.length) {
     document.getElementById('heroKpis').innerHTML = '<div class="empty">No data for this range.</div>';
-    document.getElementById('metricsRow').innerHTML = '';
     return;
   }
   const sorted = [...daily].sort((a, b) => a.stat_date.localeCompare(b.stat_date));
@@ -759,37 +787,86 @@ function renderHeroKpis() {
   ).join('');
 }
 
-function renderMetrics() {
+function renderStatsGrid() {
   const daily = state.daily;
-  if (!daily.length) return;
-  const totalLeads     = daily.reduce((s,d) => s + n(d.leads), 0);
-  const totalCalls     = daily.reduce((s,d) => s + n(d.calls), 0);
-  const totalContacted = daily.reduce((s,d) => s + n(d.contacted), 0);
-  const totalCloses    = daily.reduce((s,d) => s + n(d.closes_total), 0);
-  const daysWithLeads = daily.filter(d => n(d.leads) > 0);
-  const avgFirstHrs  = daysWithLeads.length
-    ? daysWithLeads.reduce((s,d) => s + n(d.avg_first_call_hours), 0) / daysWithLeads.length
-    : 0;
-  const contactedPct = totalLeads ? (100 * totalContacted / totalLeads) : 0;
-  const callsPerLead = totalLeads ? (totalCalls / totalLeads) : 0;
-  const closedPct    = totalLeads ? (100 * totalCloses / totalLeads) : 0;
+  const day1El  = document.getElementById('statsDay1');
+  const day2El  = document.getElementById('statsDay2');
+  const day3El  = document.getElementById('statsDay3');
+  const totEl   = document.getElementById('statsTotals');
+  if (!daily.length) {
+    [day1El, day2El, day3El, totEl].forEach(el => { if (el) el.innerHTML = ''; });
+    return;
+  }
+  const sum = (k) => daily.reduce((s,d) => s + n(d[k]), 0);
+  const wAvg = (numK, weightK) => {
+    let num = 0, den = 0;
+    daily.forEach(d => {
+      const v = d[numK], w = n(d[weightK]);
+      if (v != null && w > 0) { num += n(v) * w; den += w; }
+    });
+    return den > 0 ? (num / den) : null;
+  };
 
-  const metrics = [
-    { color: 'cyan',   icon: ICONS.clock,   label: 'Avg Time to 1st Call', value: fmtHours(avgFirstHrs) },
-    { color: 'pink',   icon: ICONS.pct,     label: '% Contacted',          value: fmtPct(contactedPct) },
-    { color: 'purple', icon: ICONS.layers,  label: 'Calls per Lead',       value: callsPerLead.toFixed(2) },
-    { color: 'green',  icon: ICONS.trendUp, label: '% Closed',             value: fmtPct(closedPct) },
-  ];
+  const totalLeads          = sum('leads');
+  const totalCalls          = sum('calls');
+  const totalContacted      = sum('contacted');
+  const totalContactedFirst = sum('contacted_first_call');
+  const totalDay1Closes     = sum('day1_closes');
+  const totalDay2Calls      = sum('day2_calls');
+  const totalDay2Contacted  = sum('day2_contacted');
+  const totalDay2Closes     = sum('day2_closes');
+  const totalDay3Calls      = sum('day3_calls');
+  const totalDay3Contacted  = sum('day3_contacted');
+  const totalDay3Closes     = sum('day3_closes');
+  const totalCumContacted   = Math.round(wAvg('contacted_cumulative_pct', 'leads') * totalLeads / 100) || 0;
+  const totalClosesAfter7d  = sum('closes_after_7d');
+  const totalClosesTotal    = sum('closes_total');
 
-  document.getElementById('metricsRow').innerHTML = metrics.map(m =>
-    '<div class="metric m-' + m.color + '">' +
-      '<div class="metric-icon">' + m.icon + '</div>' +
-      '<div class="metric-text">' +
-        '<div class="metric-label">' + m.label + '</div>' +
-        '<div class="metric-value">' + m.value + '</div>' +
-      '</div>' +
-    '</div>'
-  ).join('');
+  const avgFirstHrs = wAvg('avg_first_call_hours', 'leads');
+  const avgFollowupsD1 = wAvg('followup_day1_avg', 'leads');
+
+  const pct = (num, den) => den > 0 ? (100 * num / den) : null;
+  const fmtP = (v) => v == null ? '—' : v.toFixed(1) + '%';
+  const fmtN = (v) => v == null ? '—' : fmtNum(v);
+  const fmtH = (v) => v == null ? '—' : v.toFixed(1) + 'h';
+  const fmt2 = (v) => v == null ? '—' : v.toFixed(2);
+
+  const card = (color, label, value, sub) =>
+    '<div class="stat-card sc-' + color + '">' +
+      '<div class="stat-label">' + label + '</div>' +
+      '<div class="stat-value">' + value + '</div>' +
+      (sub ? '<div class="stat-sub">' + sub + '</div>' : '') +
+    '</div>';
+
+  day1El.innerHTML = [
+    card('pink',   'Contacted %',               fmtP(pct(totalContacted, totalLeads)),      totalContacted + ' / ' + totalLeads + ' leads'),
+    card('cyan',   'Avg Time to 1st Call',      fmtH(avgFirstHrs),                          'weighted across leads'),
+    card('green',  'Contacted on 1st Call',     fmtN(totalContactedFirst),                  fmtP(pct(totalContactedFirst, totalLeads)) + ' of leads'),
+    card('blue',   '% Contacted from 1st Call', fmtP(pct(totalContactedFirst, totalLeads)), 'first-call answer rate'),
+    card('purple', '# Follow-ups Day 1 (avg)',  fmt2(avgFollowupsD1),                       'avg per lead w/ >1 call'),
+    card('gold',   'Day 1 Closes',              fmtN(totalDay1Closes),                      fmtP(pct(totalDay1Closes, totalLeads)) + ' of leads'),
+  ].join('');
+
+  day2El.innerHTML = [
+    card('blue',  '# Calls Day 2',       fmtN(totalDay2Calls),     fmtP(pct(totalDay2Calls, totalLeads)) + ' of leads'),
+    card('pink',  '# Contacted Day 2',   fmtN(totalDay2Contacted), fmtP(pct(totalDay2Contacted, totalLeads)) + ' of leads'),
+    card('green', '% Contacted Day 2',   fmtP(pct(totalDay2Contacted, totalDay2Calls)),  'of Day 2 reach'),
+    card('gold',  'Day 2 Closes',        fmtN(totalDay2Closes),    fmtP(pct(totalDay2Closes, totalLeads)) + ' of leads'),
+  ].join('');
+
+  day3El.innerHTML = [
+    card('blue',  '# Calls Day 3',       fmtN(totalDay3Calls),     fmtP(pct(totalDay3Calls, totalLeads)) + ' of leads'),
+    card('pink',  '# Contacted Day 3',   fmtN(totalDay3Contacted), fmtP(pct(totalDay3Contacted, totalLeads)) + ' of leads'),
+    card('green', '% Contacted Day 3',   fmtP(pct(totalDay3Contacted, totalDay3Calls)),  'of Day 3 reach'),
+    card('gold',  'Day 3 Closes',        fmtN(totalDay3Closes),    fmtP(pct(totalDay3Closes, totalLeads)) + ' of leads'),
+  ].join('');
+
+  totEl.innerHTML = [
+    card('cyan',   '% Contacted Cumulative', fmtP(pct(totalCumContacted, totalLeads)),  'leads ever contacted'),
+    card('purple', 'Closes After 7 Days',    fmtN(totalClosesAfter7d),                  fmtP(pct(totalClosesAfter7d, totalLeads)) + ' of leads'),
+    card('gold',   'Closes Total',           fmtN(totalClosesTotal),                    fmtP(pct(totalClosesTotal, totalLeads)) + ' close rate'),
+    card('green',  '% Closed',               fmtP(pct(totalClosesTotal, totalLeads)),   totalClosesTotal + ' / ' + totalLeads + ' leads'),
+  ].join('');
 }
 
 function renderBarChart() {
@@ -890,46 +967,14 @@ const LEAD_COLS = [
       return '<div class="row-actions">' + links.join('') + '</div>';
     } },
 ];
-const pct1 = (v) => (v == null ? '—' : n(v).toFixed(1) + '%');
-const num0 = (v) => (v == null ? '—' : n(v).toString());
-const num2 = (v) => (v == null ? '—' : n(v).toFixed(2));
-const DAILY_COLS = [
-  { key: 'stat_date',                 label: 'Date',                   render: (r) => fmtDate(r.stat_date), num: true },
-  { key: 'leads',                     label: 'Leads',                  render: (r) => num0(r.leads), num: true },
-  { key: 'calls',                     label: 'Calls',                  render: (r) => num0(r.calls), num: true },
-  { key: 'contacted',                 label: 'Contacted',              render: (r) => num0(r.contacted), num: true },
-  { key: 'contacted_pct',             label: 'Contacted %',            render: (r) => pct1(r.contacted_pct), num: true },
-  { key: 'avg_first_call_hours',      label: 'Avg Time to 1st Call (h)', render: (r) => num2(r.avg_first_call_hours) + 'h', num: true },
-  { key: 'contacted_first_call',      label: 'Contacted on 1st Call',  render: (r) => num0(r.contacted_first_call), num: true },
-  { key: 'contacted_first_call_pct',  label: '% Contacted from 1st Call', render: (r) => pct1(r.contacted_first_call_pct), num: true },
-  { key: 'followup_day1_avg',         label: '# Follow-ups Day 1 (avg)', render: (r) => num2(r.followup_day1_avg), num: true },
-  { key: 'day1_closes',               label: 'Day 1 Closes',           render: (r) => num0(r.day1_closes), num: true },
-  { key: 'day2_calls',                label: '# Calls Day 2',          render: (r) => num0(r.day2_calls), num: true },
-  { key: 'day2_contacted',            label: '# Contacted Day 2',      render: (r) => num0(r.day2_contacted), num: true },
-  { key: 'day2_contacted_pct',        label: '% Contacted Day 2',      render: (r) => pct1(r.day2_contacted_pct), num: true },
-  { key: 'day2_closes',               label: 'Day 2 Closes',           render: (r) => num0(r.day2_closes), num: true },
-  { key: 'day3_calls',                label: '# Calls Day 3',          render: (r) => num0(r.day3_calls), num: true },
-  { key: 'day3_contacted',            label: '# Contacted Day 3',      render: (r) => num0(r.day3_contacted), num: true },
-  { key: 'day3_contacted_pct',        label: '% Contacted Day 3',      render: (r) => pct1(r.day3_contacted_pct), num: true },
-  { key: 'day3_closes',               label: 'Day 3 Closes',           render: (r) => num0(r.day3_closes), num: true },
-  { key: 'contacted_cumulative_pct',  label: '% Contacted Cumulative', render: (r) => pct1(r.contacted_cumulative_pct), num: true },
-  { key: 'closes_after_7d',           label: 'Closes After 7 Days',    render: (r) => num0(r.closes_after_7d), num: true },
-  { key: 'closes_total',              label: 'Closes Total',           render: (r) => num0(r.closes_total), num: true },
-  { key: 'closed_pct',                label: '% Closed',               render: (r) => pct1(r.closed_pct), num: true },
-];
-const TABS = [
-  { id: 'leads', name: 'Leads',       color: '#6b9eff' },
-  { id: 'daily', name: 'Daily Stats', color: '#34d399' },
-];
-function currentCols() { return TABS[activeTabIdx].id === 'leads' ? LEAD_COLS : DAILY_COLS; }
-function currentSource() { return TABS[activeTabIdx].id === 'leads' ? state.leads : state.daily; }
+function currentCols() { return LEAD_COLS; }
+function currentSource() { return state.leads; }
 
 function renderTable() {
   const cols = currentCols();
   const rows = currentSource();
   document.getElementById('tableTitle').innerHTML =
-    (TABS[activeTabIdx].id === 'leads' ? 'All Leads' : 'Daily Aggregate') +
-    ' <span class="count" id="tableCount">0</span>';
+    'All Leads <span class="count" id="tableCount">0</span>';
 
   document.getElementById('thead').innerHTML = cols.map((c, i) =>
     '<th data-col="' + i + '">' + (c.label || '') + '<span class="arrow"></span></th>'
@@ -998,26 +1043,6 @@ function sortBy(colIdx) {
   applySearchAndRender();
 }
 
-function renderTabBar() {
-  const bar = document.getElementById('tabBar');
-  bar.innerHTML = TABS.map((tab, i) =>
-    '<div class="tab-item' + (i === activeTabIdx ? ' active' : '') + '" data-idx="' + i + '">' +
-      '<span class="tab-color" style="background:' + tab.color + '"></span>' + tab.name +
-    '</div>'
-  ).join('');
-  bar.querySelectorAll('.tab-item').forEach(el => {
-    el.addEventListener('click', () => {
-      const idx = parseInt(el.dataset.idx);
-      if (idx !== activeTabIdx) {
-        activeTabIdx = idx;
-        sortCol = -1;
-        document.querySelectorAll('.tab-item').forEach((e, i) => e.classList.toggle('active', i === idx));
-        renderTable();
-      }
-    });
-  });
-}
-
 let boundAfterAuth = false;
 function bindAfterAuth() {
   boundAfterAuth = true;
@@ -1036,7 +1061,6 @@ function bindAfterAuth() {
   document.getElementById('signoutBtn').addEventListener('click', async () => {
     await supa.auth.signOut();
   });
-  renderTabBar();
 }
 
 initAuth();
