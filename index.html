@@ -229,9 +229,10 @@
   }
   .section-label::before { content: ''; width: 14px; height: 1px; background: var(--text-dim); }
   .hero-kpis {
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
     gap: 14px; margin-bottom: 28px;
   }
+  @media (max-width: 1400px) { .hero-kpis { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 1100px) { .hero-kpis { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 600px)  { .hero-kpis { grid-template-columns: 1fr; } }
   .kpi {
@@ -246,6 +247,7 @@
   .kpi.k-green::after  { background: linear-gradient(90deg, var(--green),  transparent); }
   .kpi.k-pink::after   { background: linear-gradient(90deg, var(--pink),   transparent); }
   .kpi.k-gold::after   { background: linear-gradient(90deg, var(--gold),   transparent); }
+  .kpi.k-emerald::after{ background: linear-gradient(90deg, #10b981, transparent); }
   .kpi-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .kpi-icon {
     width: 44px; height: 44px; border-radius: 12px;
@@ -256,6 +258,7 @@
   .kpi.k-green  .kpi-icon { background: var(--green-bg);  color: var(--green);  box-shadow: 0 0 0 1px rgba(52,211,153,0.18) inset; }
   .kpi.k-pink   .kpi-icon { background: var(--pink-bg);   color: var(--pink);   box-shadow: 0 0 0 1px rgba(244,114,182,0.18) inset; }
   .kpi.k-gold   .kpi-icon { background: var(--gold-bg);   color: var(--gold);   box-shadow: 0 0 0 1px rgba(251,191,36,0.18) inset; }
+  .kpi.k-emerald .kpi-icon { background: rgba(16,185,129,0.12); color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.18) inset; }
   .kpi-label {
     font-size: 0.68rem; text-transform: uppercase;
     letter-spacing: 0.06em; color: var(--text-muted);
@@ -752,6 +755,7 @@ const ICONS = {
   phone: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
   check: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
   trophy: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+  money: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
   clock: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   pct: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
   layers: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
@@ -789,12 +793,14 @@ function renderHeroKpis() {
   const curr = sorted.slice(half);
   const sumKey = (rows, k) => rows.reduce((s, r) => s + n(r[k]), 0);
 
-  const totalLeads     = sumKey(sorted, 'leads');
-  const totalCalls     = sumKey(sorted, 'calls');
-  const totalContacted = sumKey(sorted, 'contacted');
-  const totalCloses    = sumKey(sorted, 'closes_total');
+  const totalLeads       = sumKey(sorted, 'leads');
+  const totalCalls       = sumKey(sorted, 'calls');
+  const totalContacted   = sumKey(sorted, 'contacted');
+  const totalDay1Closes  = sumKey(sorted, 'day1_closes');
+  const totalGrossIncome = sumKey(sorted, 'gross_income');
 
-  const colors = { blue: '#6b9eff', green: '#34d399', pink: '#f472b6', gold: '#fbbf24' };
+  const colors = { blue: '#6b9eff', green: '#34d399', pink: '#f472b6', gold: '#fbbf24', emerald: '#10b981' };
+  const fmtMoney = (v) => '$' + (Math.round(n(v))).toLocaleString();
 
   const kpis = [
     { color: 'blue',  icon: ICONS.users,  label: 'Total Leads', value: fmtNum(totalLeads),
@@ -808,10 +814,14 @@ function renderHeroKpis() {
       trend: trendBadge(sumKey(curr, 'contacted'), sumKey(prev, 'contacted')),
       sub: (totalLeads ? (100 * totalContacted / totalLeads).toFixed(1) : '0') + '% of leads',
       spark: sparkline(sorted.map(r => n(r.contacted)), colors.pink) },
-    { color: 'gold',  icon: ICONS.trophy, label: 'Closes', value: fmtNum(totalCloses),
-      trend: trendBadge(sumKey(curr, 'closes_total'),    sumKey(prev, 'closes_total')),
-      sub: (totalLeads ? (100 * totalCloses / totalLeads).toFixed(1) : '0') + '% close rate',
-      spark: sparkline(sorted.map(r => n(r.closes_total)), colors.gold) },
+    { color: 'gold',  icon: ICONS.trophy, label: 'Closes (Day 1)', value: fmtNum(totalDay1Closes),
+      trend: trendBadge(sumKey(curr, 'day1_closes'), sumKey(prev, 'day1_closes')),
+      sub: (totalLeads ? (100 * totalDay1Closes / totalLeads).toFixed(1) : '0') + '% same-day close',
+      spark: sparkline(sorted.map(r => n(r.day1_closes)), colors.gold) },
+    { color: 'emerald', icon: ICONS.money, label: 'GI (Gross Income)', value: fmtMoney(totalGrossIncome),
+      trend: trendBadge(sumKey(curr, 'gross_income'), sumKey(prev, 'gross_income')),
+      sub: (totalLeads ? fmtMoney(totalGrossIncome / totalLeads) : '$0') + ' per lead',
+      spark: sparkline(sorted.map(r => n(r.gross_income)), colors.emerald) },
   ];
 
   document.getElementById('heroKpis').innerHTML = kpis.map(k =>
