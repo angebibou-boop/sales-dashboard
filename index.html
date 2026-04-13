@@ -194,8 +194,30 @@
   }
   .filter-tag:empty { display: none; }
   .main { padding: 28px 32px 56px; max-width: 1500px; margin: 0 auto; }
+  .filters-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .filters-row .funnel-tabs { margin-bottom: 0; }
+  .rep-filter {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 5px 12px 5px 8px;
+  }
+  .rep-filter-label {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim); white-space: nowrap;
+  }
+  .rep-select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 7px 10px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    outline: none; min-width: 150px; max-width: 240px;
+    transition: border-color 0.15s;
+  }
+  .rep-select:focus { border-color: var(--blue); }
   .funnel-tabs {
-    display: flex; gap: 6px; margin-bottom: 22px;
+    display: flex; gap: 6px;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 12px; padding: 5px; width: fit-content;
   }
@@ -524,16 +546,24 @@
     </div>
   </div>
   <div class="main">
-    <div class="funnel-tabs" id="funnelTabs">
-      <button class="funnel-tab active" data-funnel="all">
-        <span class="funnel-dot" style="background:#6b9eff"></span>All
-      </button>
-      <button class="funnel-tab" data-funnel="Artistic">
-        <span class="funnel-dot" style="background:#34d399"></span>VSL Opt In
-      </button>
-      <button class="funnel-tab" data-funnel="Artisticv2">
-        <span class="funnel-dot" style="background:#f472b6"></span>VSL No Opt In
-      </button>
+    <div class="filters-row">
+      <div class="funnel-tabs" id="funnelTabs">
+        <button class="funnel-tab active" data-funnel="all">
+          <span class="funnel-dot" style="background:#6b9eff"></span>All
+        </button>
+        <button class="funnel-tab" data-funnel="Artistic">
+          <span class="funnel-dot" style="background:#34d399"></span>VSL Opt In
+        </button>
+        <button class="funnel-tab" data-funnel="Artisticv2">
+          <span class="funnel-dot" style="background:#f472b6"></span>VSL No Opt In
+        </button>
+      </div>
+      <div class="rep-filter">
+        <span class="rep-filter-label">Rep</span>
+        <select class="rep-select" id="repSelect">
+          <option value="">All Reps</option>
+        </select>
+      </div>
     </div>
     <div class="section-label">Performance Overview</div>
     <div class="hero-kpis" id="heroKpis"></div>
@@ -642,6 +672,7 @@ document.getElementById('backBtn').addEventListener('click', () => setState('log
 
 let state = { from: null, to: null, daily: [], leads: [], funnel: null };
 let activeFunnel = 'all';
+let activeRep = '';
 let sortCol = -1, sortAsc = true;
 let currentTableRows = [];
 let barChart = null, pieChart = null;
@@ -654,6 +685,7 @@ async function loadData() {
   if (f) params.set('from', f);
   if (t) params.set('to', t);
   if (activeFunnel && activeFunnel !== 'all') params.set('funnel', activeFunnel);
+  if (activeRep) params.set('rep', activeRep);
 
   const btn = document.getElementById('refetchBtn');
   btn.classList.add('spinning');
@@ -680,6 +712,20 @@ async function loadData() {
     btn.classList.remove('spinning');
     document.getElementById('funnelTabs').classList.remove('loading');
   }
+}
+
+async function loadRepList() {
+  try {
+    const r = await fetch(API_BASE + '?api=reps', {
+      cache: 'no-store',
+      headers: { 'Authorization': 'Bearer ' + currentSession.access_token }
+    });
+    if (!r.ok) return;
+    const reps = await r.json();
+    const sel = document.getElementById('repSelect');
+    sel.innerHTML = '<option value="">All Reps</option>' +
+      reps.map(rep => '<option value="' + rep + '">' + rep + '</option>').join('');
+  } catch (e) { console.warn('Could not load rep list', e); }
 }
 
 function n(v) { return Number(v) || 0; }
@@ -1122,6 +1168,11 @@ function bindAfterAuth() {
       loadData();
     });
   });
+  document.getElementById('repSelect').addEventListener('change', () => {
+    activeRep = document.getElementById('repSelect').value;
+    loadData();
+  });
+  loadRepList();
 }
 
 initAuth();
