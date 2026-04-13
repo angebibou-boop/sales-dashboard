@@ -623,6 +623,21 @@
   </div>
 </div>
 
+<!-- Invite Modal -->
+<div id="inviteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div class="auth-card" style="max-width:400px; width:100%; margin:0;">
+    <h1 style="font-size:1.25rem; margin-bottom:6px;">Invite User</h1>
+    <p class="sub" style="margin-bottom:18px;">Send an invitation email to grant dashboard access.</p>
+    <input class="auth-input" type="email" id="inviteEmail" placeholder="their@email.com" autocomplete="off">
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="auth-btn" id="sendInviteBtn" style="flex:1; margin-top:0;">Send Invite</button>
+      <button class="btn btn-ghost" id="cancelInviteBtn" style="flex:0 0 auto; padding:0 18px;">Cancel</button>
+    </div>
+    <div class="auth-error" id="inviteError" style="margin-top:10px;"></div>
+    <div id="inviteSuccess" style="display:none; color:var(--green); font-size:0.85rem; margin-top:10px; text-align:center;"></div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://pojqljrhhtnigyrtzdzz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
@@ -1265,20 +1280,5 @@ function bindAfterAuth() {
 
 initAuth();
 </script>
-
-<!-- Invite Modal -->
-<div id="inviteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:1000; align-items:center; justify-content:center; padding:20px;">
-  <div class="auth-card" style="max-width:400px; width:100%; margin:0;">
-    <h1 style="font-size:1.25rem; margin-bottom:6px;">Invite User</h1>
-    <p class="sub" style="margin-bottom:18px;">Send an invitation email to grant dashboard access.</p>
-    <input class="auth-input" type="email" id="inviteEmail" placeholder="their@email.com" autocomplete="off">
-    <div style="display:flex; gap:10px; margin-top:12px;">
-      <button class="auth-btn" id="sendInviteBtn" style="flex:1; margin-top:0;">Send Invite</button>
-      <button class="btn btn-ghost" id="cancelInviteBtn" style="flex:0 0 auto; padding:0 18px;">Cancel</button>
-    </div>
-    <div class="auth-error" id="inviteError" style="margin-top:10px;"></div>
-    <div id="inviteSuccess" style="display:none; color:var(--green); font-size:0.85rem; margin-top:10px; text-align:center;"></div>
-  </div>
-</div>
 </body>
 </html>
