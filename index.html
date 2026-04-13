@@ -46,11 +46,12 @@
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
-  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="sent"] #app, body[data-state="sent"] #login,
-  body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot, body[data-state="dashboard"] #sent,
-  body[data-state="login"] #app, body[data-state="login"] #boot, body[data-state="login"] #sent { display: none; }
+  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="loading"] #setPassword,
+  body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot, body[data-state="dashboard"] #setPassword,
+  body[data-state="login"] #app, body[data-state="login"] #boot, body[data-state="login"] #setPassword,
+  body[data-state="set-password"] #app, body[data-state="set-password"] #login, body[data-state="set-password"] #boot { display: none; }
   body[data-state="loading"] #boot, body[data-state="login"] #login,
-  body[data-state="sent"] #sent { display: flex; }
+  body[data-state="set-password"] #setPassword { display: flex; }
   body[data-state="dashboard"] #app { display: block; }
   .full-center {
     min-height: 100vh; display: flex; align-items: center; justify-content: center;
@@ -492,22 +493,26 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
     </div>
     <h1>Sales Leads Dashboard</h1>
-    <p class="sub">Sign in with a magic link to your email</p>
+    <p class="sub">Sign in to your account</p>
     <input class="auth-input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
-    <button type="submit" class="auth-btn" id="sendBtn">Send magic link</button>
+    <input class="auth-input" type="password" id="password" placeholder="Password" required autocomplete="current-password" style="margin-top:10px;">
+    <button type="submit" class="auth-btn" id="sendBtn">Sign In</button>
     <div class="auth-error" id="loginError"></div>
   </form>
 </div>
 
-<div id="sent" class="full-center">
-  <div class="auth-card">
+<div id="setPassword" class="full-center">
+  <form class="auth-card" id="setPasswordForm">
     <div class="auth-icon" style="background:linear-gradient(135deg,var(--green) 0%, #10b981 100%); box-shadow: 0 8px 24px rgba(52,211,153,0.4);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9 22 2z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
     </div>
-    <h1>Check your email</h1>
-    <p class="sub">We sent a magic link to <span id="sentEmail" style="color:var(--text)"></span>. Click the link to sign in.</p>
-    <button class="auth-btn" style="background:var(--surface3); color:var(--text-muted); box-shadow:none;" id="backBtn">Use a different email</button>
-  </div>
+    <h1>Set Your Password</h1>
+    <p class="sub">Choose a password to activate your account</p>
+    <input class="auth-input" type="password" id="newPassword" placeholder="New password (min 8 chars)" required autocomplete="new-password">
+    <input class="auth-input" type="password" id="confirmPassword" placeholder="Confirm password" required autocomplete="new-password" style="margin-top:10px;">
+    <button type="submit" class="auth-btn" id="setPasswordBtn">Activate Account</button>
+    <div class="auth-error" id="setPasswordError"></div>
+  </form>
 </div>
 
 <div id="app">
@@ -536,6 +541,10 @@
         Refresh
       </button>
       <span class="filter-tag" id="filterTag"></span>
+      <button class="btn btn-ghost" id="inviteBtn" title="Invite a user" style="gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        Invite
+      </button>
       <div class="user-chip">
         <div class="user-avatar" id="userAvatar">U</div>
         <span id="userEmail"></span>
@@ -618,16 +627,32 @@
 const SUPABASE_URL = "https://pojqljrhhtnigyrtzdzz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
 const API_BASE = SUPABASE_URL + "/functions/v1/dashboard";
+const INVITE_BASE = SUPABASE_URL + "/functions/v1/invite";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
 });
 
 function setState(s) { document.body.dataset.state = s; }
 
+// Detect invite link (Supabase puts type=invite in URL hash after redirect)
+const _hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+const isInviteLink = _hashParams.get('type') === 'invite';
+
 async function initAuth() {
+  if (isInviteLink) {
+    // Supabase auto-processes the hash token; wait for the session via onAuthStateChange
+    setState('set-password');
+    supa.auth.onAuthStateChange((_event, sess) => {
+      if (!sess) { setState('login'); return; }
+      // Still in invite flow — keep on set-password until user sets a password
+      if (isInviteLink && document.body.dataset.state === 'set-password') return;
+      onAuthed(sess);
+    });
+    return;
+  }
   const { data: { session } } = await supa.auth.getSession();
-  if (session) onAuthed(session);
-  else setState('login');
+  if (session) { onAuthed(session); return; }
+  setState('login');
   supa.auth.onAuthStateChange((_event, sess) => {
     if (sess) onAuthed(sess);
     else setState('login');
@@ -645,30 +670,93 @@ async function onAuthed(session) {
   await loadData();
 }
 
+// ── Login: email + password ───────────────────────────────────
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
   const errEl = document.getElementById('loginError');
   const btn = document.getElementById('sendBtn');
   errEl.textContent = '';
-  if (!email) return;
-  btn.disabled = true; btn.textContent = 'Sending...';
+  if (!email || !password) return;
+  btn.disabled = true; btn.textContent = 'Signing in…';
   try {
-    const { error } = await supa.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin + window.location.pathname }
-    });
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    document.getElementById('sentEmail').textContent = email;
-    setState('sent');
+    onAuthed(data.session);
   } catch (err) {
-    errEl.textContent = err.message || 'Failed to send link';
+    errEl.textContent = err.message || 'Invalid credentials';
   } finally {
-    btn.disabled = false; btn.textContent = 'Send magic link';
+    btn.disabled = false; btn.textContent = 'Sign In';
   }
 });
 
-document.getElementById('backBtn').addEventListener('click', () => setState('login'));
+// ── Set password (invite flow) ────────────────────────────────
+document.getElementById('setPasswordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pw = document.getElementById('newPassword').value;
+  const pw2 = document.getElementById('confirmPassword').value;
+  const errEl = document.getElementById('setPasswordError');
+  const btn = document.getElementById('setPasswordBtn');
+  errEl.textContent = '';
+  if (pw.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
+  if (pw !== pw2) { errEl.textContent = 'Passwords do not match'; return; }
+  btn.disabled = true; btn.textContent = 'Activating…';
+  try {
+    const { error } = await supa.auth.updateUser({ password: pw });
+    if (error) throw error;
+    const { data: { session } } = await supa.auth.getSession();
+    if (session) onAuthed(session);
+    else setState('login');
+  } catch (err) {
+    errEl.textContent = err.message || 'Failed to set password';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Activate Account';
+  }
+});
+
+// ── Invite modal ──────────────────────────────────────────────
+document.getElementById('inviteBtn').addEventListener('click', () => {
+  const modal = document.getElementById('inviteModal');
+  document.getElementById('inviteEmail').value = '';
+  document.getElementById('inviteError').textContent = '';
+  document.getElementById('inviteSuccess').style.display = 'none';
+  modal.style.display = 'flex';
+});
+document.getElementById('cancelInviteBtn').addEventListener('click', () => {
+  document.getElementById('inviteModal').style.display = 'none';
+});
+document.getElementById('inviteModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+});
+document.getElementById('sendInviteBtn').addEventListener('click', async () => {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const errEl = document.getElementById('inviteError');
+  const successEl = document.getElementById('inviteSuccess');
+  const btn = document.getElementById('sendInviteBtn');
+  errEl.textContent = ''; successEl.style.display = 'none';
+  if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(INVITE_BASE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + currentSession.access_token,
+      },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to send invite');
+    successEl.textContent = 'Invitation sent to ' + email;
+    successEl.style.display = 'block';
+    document.getElementById('inviteEmail').value = '';
+  } catch (err) {
+    errEl.textContent = err.message || 'Failed to send invite';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Invite';
+  }
+});
 
 let state = { from: null, to: null, daily: [], leads: [], funnel: null };
 let activeFunnel = 'all';
@@ -1177,5 +1265,20 @@ function bindAfterAuth() {
 
 initAuth();
 </script>
+
+<!-- Invite Modal -->
+<div id="inviteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div class="auth-card" style="max-width:400px; width:100%; margin:0;">
+    <h1 style="font-size:1.25rem; margin-bottom:6px;">Invite User</h1>
+    <p class="sub" style="margin-bottom:18px;">Send an invitation email to grant dashboard access.</p>
+    <input class="auth-input" type="email" id="inviteEmail" placeholder="their@email.com" autocomplete="off">
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <button class="auth-btn" id="sendInviteBtn" style="flex:1; margin-top:0;">Send Invite</button>
+      <button class="btn btn-ghost" id="cancelInviteBtn" style="flex:0 0 auto; padding:0 18px;">Cancel</button>
+    </div>
+    <div class="auth-error" id="inviteError" style="margin-top:10px;"></div>
+    <div id="inviteSuccess" style="display:none; color:var(--green); font-size:0.85rem; margin-top:10px; text-align:center;"></div>
+  </div>
+</div>
 </body>
 </html>
