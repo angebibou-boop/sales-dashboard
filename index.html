@@ -837,7 +837,9 @@ function fmtPct(v) { return n(v).toFixed(1) + '%'; }
 function fmtHours(v) { const x = n(v); return x === 0 ? '0h' : x.toFixed(1) + 'h'; }
 function fmtTs(v) {
   if (!v) return '';
-  const d = new Date(v.includes('T') ? v : v.replace(' ', 'T'));
+  let s = v.includes('T') ? v : v.replace(' ', 'T');
+  if (!s.endsWith('Z') && !s.includes('+')) s += 'Z'; // treat as UTC
+  const d = new Date(s);
   if (isNaN(d)) return v;
   return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
 }
