@@ -1029,7 +1029,14 @@ function renderStatsGrid() {
   const pct = (num, den) => den > 0 ? (100 * num / den) : null;
   const fmtP = (v) => v == null ? '—' : v.toFixed(1) + '%';
   const fmtN = (v) => v == null ? '—' : fmtNum(v);
-  const fmtH = (v) => v == null ? '—' : v.toFixed(1) + 'h';
+  const fmtH = (v) => {
+    if (v == null) return '—';
+    const totalMins = Math.round(v * 60);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    if (hrs === 0) return mins + 'm';
+    return hrs + 'h ' + mins + 'm';
+  };
   const fmt2 = (v) => v == null ? '—' : v.toFixed(2);
 
   const card = (color, label, value, sub) =>
@@ -1145,7 +1152,7 @@ const LEAD_COLS = [
         '<div class="row-avatar" style="background:' + bg + '">' + ini + '</div>' +
         '<span class="row-name-text">' + (name || '—') + '</span></div>';
     }, sortKey: 'first_name' },
-  { key: 'lead_date', label: 'Date', render: (r) => fmtDate(r.lead_date), sortKey: 'lead_date', num: true },
+  { key: 'lead_date', label: 'Date', render: (r) => fmtTs(r.created_at || r.lead_date), sortKey: 'lead_date', num: true },
   { key: 'email', label: 'Email', render: (r) => r.email || '—' },
   { key: 'phone', label: 'Phone', render: (r) => r.phone || '—' },
   { key: 'rep', label: 'Rep', render: (r) => r.rep || '—' },
