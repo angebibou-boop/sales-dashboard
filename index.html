@@ -1152,7 +1152,7 @@ const LEAD_COLS = [
         '<div class="row-avatar" style="background:' + bg + '">' + ini + '</div>' +
         '<span class="row-name-text">' + (name || '—') + '</span></div>';
     }, sortKey: 'first_name' },
-  { key: 'lead_date', label: 'Date', render: (r) => fmtTs(r.created_at || r.lead_date), sortKey: 'lead_date', num: true },
+  { key: 'lead_date', label: 'Date', render: (r) => fmtTs(r.lead_ts || r.lead_date), sortKey: 'lead_date', num: true },
   { key: 'email', label: 'Email', render: (r) => r.email || '—' },
   { key: 'phone', label: 'Phone', render: (r) => r.phone || '—' },
   { key: 'rep', label: 'Rep', render: (r) => r.rep || '—' },
