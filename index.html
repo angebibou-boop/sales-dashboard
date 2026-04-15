@@ -473,6 +473,19 @@
     text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.9rem;
   }
   .error { color: var(--red); }
+  .nav-dropdown-menu {
+    position:absolute; top:calc(100% + 6px); right:0;
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:6px; min-width:190px; z-index:200;
+    box-shadow:0 12px 32px rgba(0,0,0,0.4);
+  }
+  .nav-drop-item {
+    display:flex; align-items:center; gap:8px; padding:9px 12px;
+    border-radius:8px; font-size:0.8rem; font-weight:600; color:var(--text-muted);
+    text-decoration:none; transition:all 0.12s; cursor:pointer;
+  }
+  .nav-drop-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-drop-item.nav-drop-active { color:var(--blue); background:var(--blue-bg); }
   @media (max-width: 768px) {
     .header { padding: 18px; flex-direction: column; align-items: flex-start; }
     .main { padding: 22px 18px 60px; }
@@ -541,10 +554,26 @@
         Refresh
       </button>
       <span class="filter-tag" id="filterTag"></span>
-      <a href="meta-ads.html" class="btn btn-ghost" id="metaAdsBtn" style="display:none; text-decoration:none;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-        Meta Ads
-      </a>
+      <div class="nav-dropdown" id="navDropdown" style="display:none; position:relative;">
+        <button class="btn btn-ghost" id="navDropBtn" style="gap:6px;">
+          Dashboards
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="nav-dropdown-menu" id="navDropMenu" style="display:none;">
+          <a href="index.html" class="nav-drop-item nav-drop-active">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            Sales Dashboard
+          </a>
+          <a href="meta-ads.html" class="nav-drop-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            Meta Ads
+          </a>
+          <a href="performance.html" class="nav-drop-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Funnel Performance
+          </a>
+        </div>
+      </div>
       <button class="btn btn-ghost" id="adminBtn" style="display:none; gap:6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
         Admin
@@ -719,7 +748,7 @@ async function onAuthed(session) {
   const isAdmin = session.user.app_metadata?.is_admin ?? false;
   const perms   = session.user.app_metadata?.permissions ?? [];
   if (isAdmin || perms.includes('marketing')) {
-    document.getElementById('metaAdsBtn').style.display = 'inline-flex';
+    document.getElementById('navDropdown').style.display = 'block';
   }
   if (isAdmin) {
     document.getElementById('adminBtn').style.display = 'inline-flex';
@@ -884,6 +913,17 @@ document.getElementById('sendInviteBtn').addEventListener('click', async () => {
   } finally {
     btn.disabled = false; btn.textContent = 'Send Invite';
   }
+});
+
+// ── Nav dropdown ──────────────────────────────────────────────
+document.getElementById('navDropBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const m = document.getElementById('navDropMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+});
+document.addEventListener('click', () => {
+  const m = document.getElementById('navDropMenu');
+  if (m) m.style.display = 'none';
 });
 
 let state = { from: null, to: null, daily: [], leads: [], funnel: null };
