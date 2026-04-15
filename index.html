@@ -3,97 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sales Leads Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<title>Meta Ads Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   :root {
-    --bg: #0a0c12;
-    --bg-grad: radial-gradient(ellipse at top, #14182a 0%, #0a0c12 60%);
-    --surface: #141826;
-    --surface2: #1c2134;
-    --surface3: #242a3f;
-    --border: #272d44;
-    --border-light: #353c5a;
+    --bg: #0d0f1a;
+    --surface: #131627;
+    --surface2: #1a1e30;
+    --surface3: #1e2336;
+    --border: #252840;
+    --border-light: #2e3352;
     --text: #e8eaf4;
-    --text-muted: #7a83a8;
-    --text-dim: #4a5278;
+    --text-muted: #8890b0;
+    --text-dim: #4a5070;
     --blue: #6b9eff;
     --blue-bg: rgba(107,158,255,0.12);
-    --blue-glow: rgba(107,158,255,0.35);
     --green: #34d399;
     --green-bg: rgba(52,211,153,0.12);
-    --green-glow: rgba(52,211,153,0.35);
-    --pink: #f472b6;
-    --pink-bg: rgba(244,114,182,0.12);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.12);
     --gold: #fbbf24;
     --gold-bg: rgba(251,191,36,0.12);
     --purple: #a78bfa;
     --purple-bg: rgba(167,139,250,0.12);
     --cyan: #22d3ee;
     --cyan-bg: rgba(34,211,238,0.12);
-    --red: #f87171;
-    --red-bg: rgba(248,113,113,0.12);
-    --radius: 14px;
+    --pink: #f472b6;
+    --pink-bg: rgba(244,114,182,0.12);
+    --bg-grad: linear-gradient(160deg, #0d0f1a 0%, #101220 50%, #0d0f1a 100%);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { background: var(--bg); }
+  body.light {
+    --bg: #f4f6fb; --bg-grad: linear-gradient(160deg,#f4f6fb 0%,#eef0fa 50%,#f4f6fb 100%);
+    --surface: #ffffff; --surface2: #f0f2f8; --surface3: #e8ebf5;
+    --border: #dde2f0; --border-light: #c8cedf;
+    --text: #1a1d2e; --text-muted: #525a7a; --text-dim: #9199b8;
+    --blue-bg: rgba(107,158,255,0.15); --green-bg: rgba(52,211,153,0.15);
+    --gold-bg: rgba(251,191,36,0.15); --purple-bg: rgba(167,139,250,0.15);
+    --pink-bg: rgba(244,114,182,0.15); --cyan-bg: rgba(34,211,238,0.15);
+    --red-bg: rgba(248,113,113,0.15);
+  }
+  body.light .header { background: rgba(255,255,255,0.95) !important; }
+  body.light thead th { background: var(--surface2); }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg-grad);
-    background-attachment: fixed;
-    color: var(--text);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+    background: var(--bg-grad); background-attachment: fixed;
+    color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased;
   }
-  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="loading"] #setPassword,
-  body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot, body[data-state="dashboard"] #setPassword,
-  body[data-state="login"] #app, body[data-state="login"] #boot, body[data-state="login"] #setPassword,
-  body[data-state="set-password"] #app, body[data-state="set-password"] #login, body[data-state="set-password"] #boot { display: none; }
-  body[data-state="loading"] #boot, body[data-state="login"] #login,
-  body[data-state="set-password"] #setPassword { display: flex; }
-  body[data-state="dashboard"] #app { display: block; }
+
+  /* ── Auth screens ─────────────────────────────────────── */
   .full-center {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    padding: 40px 20px;
+    min-height: 100vh; display: flex; align-items: center;
+    justify-content: center; padding: 20px;
   }
   .auth-card {
-    width: 100%; max-width: 380px;
-    background: linear-gradient(180deg, var(--surface) 0%, var(--surface2) 100%);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 36px 32px;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.02) inset;
-    text-align: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 400px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
   }
   .auth-icon {
-    width: 56px; height: 56px; margin: 0 auto 18px;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
-    border-radius: 16px;
+    width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 20px;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 24px rgba(107,158,255,0.4);
+    background: linear-gradient(135deg, #1877f2 0%, #e1306c 100%);
+    box-shadow: 0 8px 24px rgba(24,119,242,0.4);
   }
   .auth-card h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
   .auth-card .sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px; }
   .auth-input {
-    width: 100%; background: var(--bg);
-    border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px 14px; color: var(--text); font-size: 0.92rem;
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 0.92rem;
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .auth-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
   .auth-btn {
     width: 100%; margin-top: 12px;
-    background: linear-gradient(135deg, var(--blue) 0%, #4a7de0 100%);
-    border: none; border-radius: 10px;
-    padding: 12px 16px; color: #fff;
+    background: linear-gradient(135deg, #1877f2 0%, #e1306c 100%);
+    border: none; border-radius: 10px; padding: 12px 16px; color: #fff;
     font-size: 0.92rem; font-weight: 600; cursor: pointer;
     transition: transform 0.1s, box-shadow 0.15s;
-    box-shadow: 0 6px 20px rgba(107,158,255,0.3);
+    box-shadow: 0 6px 20px rgba(24,119,242,0.3);
   }
-  .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(107,158,255,0.4); }
-  .auth-btn:active { transform: translateY(0); }
-  .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+  .auth-btn:hover { transform: translateY(-1px); }
+  .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
   .auth-error { color: var(--red); font-size: 0.78rem; margin-top: 8px; min-height: 1em; }
   .spinner {
     width: 40px; height: 40px; border: 3px solid var(--border);
@@ -101,412 +93,184 @@
     animation: spin 0.7s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── State visibility ─────────────────────────────────── */
+  body[data-state="loading"] #app,
+  body[data-state="loading"] #login,
+  body[data-state="loading"] #denied,
+  body[data-state="dashboard"] #login,
+  body[data-state="dashboard"] #boot,
+  body[data-state="dashboard"] #denied,
+  body[data-state="login"] #app,
+  body[data-state="login"] #boot,
+  body[data-state="login"] #denied,
+  body[data-state="denied"] #app,
+  body[data-state="denied"] #boot,
+  body[data-state="denied"] #login { display: none; }
+  body[data-state="loading"] #boot { display: flex; }
+  body[data-state="login"] #login { display: flex; }
+  body[data-state="denied"] #denied { display: flex; }
+  body[data-state="dashboard"] #app { display: block; }
+
+  /* ── Header ───────────────────────────────────────────── */
   .header {
-    padding: 26px 32px 22px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 16px;
-    background: rgba(20,24,38,0.6);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; gap: 14px; padding: 16px 28px;
+    background: rgba(19,22,39,0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+    flex-wrap: wrap;
   }
-  .header-left { display: flex; align-items: center; gap: 14px; }
   .header-logo {
-    width: 42px; height: 42px;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
-    border-radius: 11px;
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1877f2 0%, #e1306c 100%);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 6px 18px rgba(107,158,255,0.35);
   }
-  .header-text h1 {
-    font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;
+  .header-text .title {
+    font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em;
     background: linear-gradient(135deg, #e8eaf4 0%, #a8b0d0 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
-  .header-text .subtitle { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
-  .live-dot {
-    width: 7px; height: 7px;
-    background: var(--green); border-radius: 50%;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--green-glow); }
-    50% { opacity: 0.5; box-shadow: 0 0 0 6px rgba(52,211,153,0); }
-  }
-  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .header-text .subtitle { color: var(--text-muted); font-size: 0.75rem; margin-top: 1px; }
+  .header-spacer { flex: 1; }
   .filter-group {
     display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border);
+    background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 6px 10px;
   }
-  .filter-group label {
-    font-size: 0.7rem; color: var(--text-muted); font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.05em;
-  }
+  .filter-group label { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .filter-sep { color: var(--text-dim); }
   .filter-group input[type="date"] {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 7px; padding: 6px 10px;
-    color: var(--text); font-size: 0.78rem;
-    outline: none; color-scheme: dark; width: 138px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+    padding: 6px 10px; color: var(--text); font-size: 0.78rem; outline: none;
+    color-scheme: dark; width: 138px;
   }
   .filter-group input[type="date"]:focus { border-color: var(--blue); }
-  .filter-sep { color: var(--text-dim); }
   .btn {
-    border: none; border-radius: 9px;
-    padding: 8px 14px; font-size: 0.78rem; font-weight: 600;
-    cursor: pointer; transition: all 0.15s;
-    display: inline-flex; align-items: center; gap: 6px;
+    border: none; border-radius: 9px; padding: 8px 14px; font-size: 0.78rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s; display: inline-flex;
+    align-items: center; gap: 6px;
   }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--blue) 0%, #4a7de0 100%);
-    color: #fff; box-shadow: 0 4px 12px rgba(107,158,255,0.25);
-  }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(107,158,255,0.35); }
   .btn-ghost { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
   .btn-ghost:hover { color: var(--text); border-color: var(--border-light); }
+  .btn-primary {
+    background: linear-gradient(135deg, #1877f2 0%, #e1306c 100%);
+    color: #fff; box-shadow: 0 4px 12px rgba(24,119,242,0.25);
+  }
+  .btn-primary:hover { transform: translateY(-1px); }
   .btn-refresh { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
   .btn-refresh:hover { color: var(--text); border-color: var(--border-light); }
   .btn-refresh.spinning .refresh-icon { animation: spin 0.8s linear infinite; }
-  .btn-icon {
-    width: 36px; height: 36px; padding: 0;
-    background: var(--surface2); color: var(--text-muted);
-    border: 1px solid var(--border); border-radius: 9px;
-    display: inline-flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .btn-icon:hover { color: var(--text); border-color: var(--border-light); }
   .user-chip {
-    display: flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 999px; padding: 5px 14px 5px 5px;
+    display: flex; align-items: center; gap: 8px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px 5px 5px;
     font-size: 0.78rem; color: var(--text-muted);
   }
   .user-avatar {
     width: 26px; height: 26px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    background: linear-gradient(135deg, #1877f2 0%, #e1306c 100%);
     color: #fff; font-size: 0.7rem; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
   }
-  .filter-tag {
-    font-size: 0.72rem; color: var(--green);
-    background: var(--green-bg);
-    border: 1px solid rgba(52,211,153,0.2);
-    padding: 5px 11px; border-radius: 999px; font-weight: 600;
-  }
-  .filter-tag:empty { display: none; }
-  .main { padding: 28px 32px 56px; max-width: 1500px; margin: 0 auto; }
-  .filters-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; margin-bottom: 22px; flex-wrap: wrap;
-  }
-  .filters-row .funnel-tabs { margin-bottom: 0; }
-  .rep-filter {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 5px 12px 5px 8px;
-  }
-  .rep-filter-label {
-    font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--text-dim); white-space: nowrap;
-  }
-  .rep-select {
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--text); border-radius: 8px; padding: 7px 10px;
-    font-size: 0.8rem; font-weight: 600; cursor: pointer;
-    outline: none; min-width: 150px; max-width: 240px;
-    transition: border-color 0.15s;
-  }
-  .rep-select:focus { border-color: var(--blue); }
-  .funnel-tabs {
-    display: flex; gap: 6px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 5px; width: fit-content;
-  }
-  .funnel-tab {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 9px 18px;
-    background: transparent; color: var(--text-muted);
-    border: none; border-radius: 8px;
-    font-size: 0.8rem; font-weight: 600; cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-  }
-  .funnel-tab:hover { color: var(--text); background: var(--surface2); }
-  .funnel-tab.active {
-    background: var(--surface2); color: var(--text);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px var(--border-light);
-  }
-  .funnel-tab.loading { opacity: 0.6; pointer-events: none; }
-  .funnel-dot {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  }
-  @media (max-width: 600px) {
-    .funnel-tabs { width: 100%; overflow-x: auto; }
-    .funnel-tab { padding: 8px 14px; font-size: 0.74rem; }
-  }
-  .section-label {
-    font-size: 0.68rem; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--text-dim);
-    font-weight: 700; margin-bottom: 14px;
+
+  /* ── Main layout ──────────────────────────────────────── */
+  .main { padding: 28px 32px 56px; max-width: 1400px; margin: 0 auto; }
+  .section-head {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 14px;
     display: flex; align-items: center; gap: 8px;
   }
-  .section-label::before { content: ''; width: 14px; height: 1px; background: var(--text-dim); }
-  .hero-kpis {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 14px; margin-bottom: 28px;
-  }
-  @media (max-width: 1400px) { .hero-kpis { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 1100px) { .hero-kpis { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 600px)  { .hero-kpis { grid-template-columns: 1fr; } }
-  .kpi {
-    background: linear-gradient(180deg, var(--surface) 0%, var(--surface2) 100%);
-    border: 1px solid var(--border); border-radius: 16px;
-    padding: 20px 22px; position: relative; overflow: hidden;
-    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
-  }
-  .kpi:hover { transform: translateY(-2px); border-color: var(--border-light); }
-  .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0.7; }
-  .kpi.k-blue::after   { background: linear-gradient(90deg, var(--blue),   transparent); }
-  .kpi.k-green::after  { background: linear-gradient(90deg, var(--green),  transparent); }
-  .kpi.k-pink::after   { background: linear-gradient(90deg, var(--pink),   transparent); }
-  .kpi.k-gold::after   { background: linear-gradient(90deg, var(--gold),   transparent); }
-  .kpi.k-emerald::after{ background: linear-gradient(90deg, #10b981, transparent); }
-  .kpi-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-  .kpi-icon {
-    width: 44px; height: 44px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .kpi.k-blue   .kpi-icon { background: var(--blue-bg);   color: var(--blue);   box-shadow: 0 0 0 1px rgba(107,158,255,0.18) inset; }
-  .kpi.k-green  .kpi-icon { background: var(--green-bg);  color: var(--green);  box-shadow: 0 0 0 1px rgba(52,211,153,0.18) inset; }
-  .kpi.k-pink   .kpi-icon { background: var(--pink-bg);   color: var(--pink);   box-shadow: 0 0 0 1px rgba(244,114,182,0.18) inset; }
-  .kpi.k-gold   .kpi-icon { background: var(--gold-bg);   color: var(--gold);   box-shadow: 0 0 0 1px rgba(251,191,36,0.18) inset; }
-  .kpi.k-emerald .kpi-icon { background: rgba(16,185,129,0.12); color: #10b981; box-shadow: 0 0 0 1px rgba(16,185,129,0.18) inset; }
-  .kpi-label {
-    font-size: 0.68rem; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--text-muted);
-    font-weight: 700; margin-bottom: 4px;
-  }
-  .kpi-value {
-    font-size: 2.1rem; font-weight: 700;
-    letter-spacing: -0.03em; line-height: 1.05; color: var(--text);
-  }
-  .kpi-sub {
-    font-size: 0.72rem; color: var(--text-dim); margin-top: 6px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .kpi-trend {
-    display: inline-flex; align-items: center; gap: 3px;
-    font-weight: 700; font-size: 0.72rem;
-    padding: 2px 7px; border-radius: 999px;
-  }
-  .kpi-trend.up   { color: var(--green); background: var(--green-bg); }
-  .kpi-trend.down { color: var(--red);   background: var(--red-bg); }
-  .kpi-trend.flat { color: var(--text-muted); background: var(--surface3); }
-  .kpi-spark { margin-top: 14px; width: 100%; height: 36px; overflow: visible; }
-  .metrics-row {
-    display: grid; grid-template-columns: repeat(4, 1fr);
+  .section-head::before { content: ''; width: 10px; height: 1px; background: var(--text-dim); }
+
+  /* ── KPI cards ────────────────────────────────────────── */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
     gap: 12px; margin-bottom: 28px;
   }
-  @media (max-width: 1100px) { .metrics-row { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 600px)  { .metrics-row { grid-template-columns: 1fr; } }
-  .metric {
+  @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+  .kpi-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px;
-    transition: border-color 0.2s, transform 0.15s;
+    border-radius: 14px; padding: 18px 20px; position: relative; overflow: hidden;
   }
-  .metric:hover { border-color: var(--border-light); transform: translateY(-1px); }
-  .metric-icon {
-    width: 36px; height: 36px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+  .kpi-card::after {
+    content: ''; position: absolute; inset: 0; opacity: 0.06;
+    pointer-events: none;
   }
-  .metric.m-cyan   .metric-icon { background: var(--cyan-bg);   color: var(--cyan); }
-  .metric.m-pink   .metric-icon { background: var(--pink-bg);   color: var(--pink); }
-  .metric.m-purple .metric-icon { background: var(--purple-bg); color: var(--purple); }
-  .metric.m-green  .metric-icon { background: var(--green-bg);  color: var(--green); }
-  .metric-text { flex: 1; min-width: 0; }
-  .metric-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
-  .metric-value { font-size: 1.15rem; font-weight: 700; color: var(--text); }
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 12px; margin-bottom: 12px;
-  }
-  @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 800px)  { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px)  { .stats-grid { grid-template-columns: 1fr; } }
-  .stat-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px 16px 14px 18px;
-    position: relative; overflow: hidden;
-    transition: border-color 0.2s, transform 0.15s;
-  }
-  .stat-card:hover { border-color: var(--border-light); transform: translateY(-1px); }
-  .stat-card::before {
-    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
-    border-radius: 3px 0 0 3px;
-  }
-  .stat-card.sc-blue::before   { background: var(--blue); }
-  .stat-card.sc-green::before  { background: var(--green); }
-  .stat-card.sc-pink::before   { background: var(--pink); }
-  .stat-card.sc-purple::before { background: var(--purple); }
-  .stat-card.sc-gold::before   { background: var(--gold); }
-  .stat-card.sc-cyan::before   { background: var(--cyan); }
-  .stat-label {
-    font-size: 0.64rem; text-transform: uppercase;
-    letter-spacing: 0.05em; color: var(--text-muted);
-    font-weight: 700; line-height: 1.3;
-    display: block; margin-bottom: 6px;
-    min-height: 2.1em;
-  }
-  .stat-value {
-    font-size: 1.35rem; font-weight: 700;
-    letter-spacing: -0.02em; color: var(--text); line-height: 1.1;
-  }
-  .stat-sub {
-    font-size: 0.66rem; color: var(--text-dim); margin-top: 3px;
-  }
-  .section-subhead {
-    font-size: 0.62rem; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--text-dim);
-    font-weight: 700; margin: 22px 0 10px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-subhead::before { content: ''; width: 10px; height: 1px; background: var(--text-dim); }
-  .charts-row {
-    display: grid; grid-template-columns: 2fr 1fr;
-    gap: 14px; margin-bottom: 28px;
-  }
-  @media (max-width: 1000px) { .charts-row { grid-template-columns: 1fr; } }
+  .kpi-card.k-blue::after  { background: radial-gradient(circle at top right, var(--blue), transparent 70%); }
+  .kpi-card.k-green::after { background: radial-gradient(circle at top right, var(--green), transparent 70%); }
+  .kpi-card.k-gold::after  { background: radial-gradient(circle at top right, var(--gold), transparent 70%); }
+  .kpi-card.k-pink::after  { background: radial-gradient(circle at top right, var(--pink), transparent 70%); }
+  .kpi-card.k-cyan::after  { background: radial-gradient(circle at top right, var(--cyan), transparent 70%); }
+  .kpi-card.k-purple::after{ background: radial-gradient(circle at top right, var(--purple), transparent 70%); }
+  .kpi-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .kpi-value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .kpi-sub   { font-size: 0.72rem; color: var(--text-dim); margin-top: 6px; }
+
+  /* ── Chart card ───────────────────────────────────────── */
   .chart-card {
     background: linear-gradient(180deg, var(--surface) 0%, var(--surface2) 100%);
-    border: 1px solid var(--border); border-radius: 16px; padding: 22px;
+    border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px;
+    margin-bottom: 28px;
   }
-  .chart-header { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-  .chart-icon {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: var(--blue-bg); color: var(--blue);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .chart-title { font-size: 0.82rem; font-weight: 700; color: var(--text); }
-  .chart-card canvas { width: 100% !important; }
-  .bar-chart-wrap { height: 320px; }
-  .pie-chart-wrap { height: 320px; display: flex; align-items: center; justify-content: center; }
+  .chart-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+  .chart-wrap  { height: 280px; }
+
+  /* ── Tables ───────────────────────────────────────────── */
   .table-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; overflow: hidden;
+    border-radius: 16px; overflow: hidden; margin-bottom: 28px;
   }
   .table-toolbar {
     display: flex; align-items: center; gap: 14px; padding: 18px 20px;
     border-bottom: 1px solid var(--border); flex-wrap: wrap;
   }
   .table-title { font-size: 0.92rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 10px; }
-  .table-title .count {
-    font-size: 0.7rem; font-weight: 700;
-    background: var(--blue-bg); color: var(--blue);
-    padding: 3px 9px; border-radius: 999px;
+  .count {
+    font-size: 0.7rem; font-weight: 700; background: var(--blue-bg); color: var(--blue);
+    border-radius: 999px; padding: 2px 8px;
   }
-  .search-wrap { position: relative; flex: 1; max-width: 360px; }
-  .search-wrap svg {
-    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-    color: var(--text-dim); width: 15px; height: 15px;
-  }
-  .search-wrap input {
-    width: 100%; background: var(--bg);
-    border: 1px solid var(--border); border-radius: 9px;
-    padding: 9px 12px 9px 36px; color: var(--text); font-size: 0.82rem;
-    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .search-wrap input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-bg); }
-  .search-wrap input::placeholder { color: var(--text-dim); }
-  .table-wrap { overflow-x: auto; max-height: 580px; }
+  .table-wrap { overflow-x: auto; max-height: 500px; }
   table { width: 100%; border-collapse: collapse; font-size: 0.82rem; white-space: nowrap; }
   thead th {
     background: var(--surface2); padding: 13px 16px; text-align: left;
-    font-weight: 700; color: var(--text-muted); font-size: 0.68rem;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    cursor: pointer; user-select: none;
-    position: sticky; top: 0; border-bottom: 1px solid var(--border);
-    z-index: 1;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-muted); cursor: pointer;
+    position: sticky; top: 0; border-bottom: 1px solid var(--border); user-select: none;
   }
   thead th:hover { color: var(--text); }
-  thead th .arrow { margin-left: 4px; font-size: 0.65rem; color: var(--blue); }
-  tbody tr {
-    border-bottom: 1px solid rgba(39,45,68,0.5);
-    transition: background 0.1s;
-  }
+  tbody tr { border-bottom: 1px solid rgba(39,45,68,0.5); transition: background 0.1s; }
   tbody tr:hover { background: var(--surface2); }
-  td { padding: 12px 16px; color: var(--text-muted); vertical-align: middle; }
+  td { padding: 12px 16px; color: var(--text-muted); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; color: var(--text); }
   td.pos { color: var(--green); font-weight: 600; }
-  td.zero { color: var(--text-dim); }
-  .row-name { display: flex; align-items: center; gap: 10px; }
-  .row-avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    color: #fff; font-size: 0.72rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.7rem;
+    font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid transparent;
   }
-  .row-name-text { color: var(--text); font-weight: 600; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 9px; border-radius: 999px;
-    font-size: 0.7rem; font-weight: 700;
-    border: 1px solid transparent;
-  }
-  .badge svg { width: 11px; height: 11px; }
-  .badge-green { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.2); }
-  .badge-dim   { background: var(--surface3); color: var(--text-dim); }
-  .badge-gold  { background: var(--gold-bg);  color: var(--gold);  border-color: rgba(251,191,36,0.2); }
-  .badge-blue  { background: var(--blue-bg);  color: var(--blue);  border-color: rgba(107,158,255,0.2); }
-  .row-actions { display: flex; gap: 6px; }
-  .row-action {
-    width: 28px; height: 28px; border-radius: 7px;
-    background: var(--surface2); color: var(--text-muted);
-    border: 1px solid var(--border);
-    display: inline-flex; align-items: center; justify-content: center;
-    text-decoration: none; transition: all 0.15s;
-  }
-  .row-action:hover { color: var(--blue); border-color: var(--blue); background: var(--blue-bg); }
-  .row-action svg { width: 13px; height: 13px; }
-  .empty {
-    text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.9rem;
-  }
+  .status-active  { background: var(--green-bg); color: var(--green); border-color: rgba(52,211,153,0.2); }
+  .status-paused  { background: var(--gold-bg);  color: var(--gold);  border-color: rgba(251,191,36,0.2); }
+  .status-other   { background: var(--surface3); color: var(--text-muted); border-color: var(--border); }
+  .empty { text-align: center; padding: 60px 20px; color: var(--text-muted); font-size: 0.9rem; }
   .error { color: var(--red); }
-  .nav-dropdown-menu {
-    position:absolute; top:calc(100% + 6px); right:0;
-    background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:6px; min-width:190px; z-index:200;
-    box-shadow:0 12px 32px rgba(0,0,0,0.4);
-  }
-  .nav-drop-item {
-    display:flex; align-items:center; gap:8px; padding:9px 12px;
-    border-radius:8px; font-size:0.8rem; font-weight:600; color:var(--text-muted);
-    text-decoration:none; transition:all 0.12s; cursor:pointer;
-  }
-  .nav-drop-item:hover { background:var(--surface2); color:var(--text); }
-  .nav-drop-item.nav-drop-active { color:var(--blue); background:var(--blue-bg); }
-  @media (max-width: 768px) {
-    .header { padding: 18px; flex-direction: column; align-items: flex-start; }
-    .main { padding: 22px 18px 60px; }
-    .header-right { width: 100%; }
-    .filter-group { flex-wrap: wrap; width: 100%; }
-  }
 </style>
 </head>
 <body data-state="loading">
 
+<!-- Boot / loading -->
 <div id="boot" class="full-center">
-  <div class="spinner"></div>
+  <div style="text-align:center;">
+    <div class="spinner" style="margin:0 auto 16px;"></div>
+    <div style="color:var(--text-muted); font-size:0.85rem;">Loading…</div>
+  </div>
 </div>
 
+<!-- Login -->
 <div id="login" class="full-center">
   <form class="auth-card" id="loginForm">
     <div class="auth-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
     </div>
-    <h1>Sales Leads Dashboard</h1>
-    <p class="sub">Sign in to your account</p>
+    <h1>Meta Ads Dashboard</h1>
+    <p class="sub">Sign in to view your ad performance</p>
     <input class="auth-input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
     <input class="auth-input" type="password" id="password" placeholder="Password" required autocomplete="current-password" style="margin-top:10px;">
     <button type="submit" class="auth-btn" id="sendBtn">Sign In</button>
@@ -514,259 +278,406 @@
   </form>
 </div>
 
-<div id="setPassword" class="full-center">
-  <form class="auth-card" id="setPasswordForm">
-    <div class="auth-icon" style="background:linear-gradient(135deg,var(--green) 0%, #10b981 100%); box-shadow: 0 8px 24px rgba(52,211,153,0.4);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    </div>
-    <h1>Set Your Password</h1>
-    <p class="sub">Choose a password to activate your account</p>
-    <input class="auth-input" type="password" id="newPassword" placeholder="New password (min 8 chars)" required autocomplete="new-password">
-    <input class="auth-input" type="password" id="confirmPassword" placeholder="Confirm password" required autocomplete="new-password" style="margin-top:10px;">
-    <button type="submit" class="auth-btn" id="setPasswordBtn">Activate Account</button>
-    <div class="auth-error" id="setPasswordError"></div>
-  </form>
+<!-- Access denied -->
+<div id="denied" class="full-center">
+  <div class="auth-card" style="text-align:center;">
+    <div style="font-size:2.5rem; margin-bottom:16px;">🔒</div>
+    <h1 style="font-size:1.2rem; margin-bottom:8px;">Access Denied</h1>
+    <p class="sub" style="margin-bottom:20px;">You don't have permission to view the Meta Ads dashboard. Contact your admin to request access.</p>
+    <a href="index.html" class="auth-btn" style="display:inline-block; text-decoration:none; width:auto; padding:10px 24px;">← Back to Sales Dashboard</a>
+  </div>
 </div>
 
+<!-- Main app -->
 <div id="app">
-  <div class="header">
-    <div class="header-left">
-      <div class="header-logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-      </div>
-      <div class="header-text">
-        <h1>Sales Leads Dashboard</h1>
-        <p class="subtitle"><span class="live-dot"></span><span id="subtitleText">Live data from Supabase</span></p>
+  <header class="header">
+    <div class="header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+    </div>
+    <div class="header-text">
+      <div class="title">Meta Ads Dashboard</div>
+      <div class="subtitle">Ad performance &amp; spend analytics</div>
+    </div>
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="dateFrom">
+      <span class="filter-sep">→</span>
+      <label>To</label>
+      <input type="date" id="dateTo">
+    </div>
+    <button class="btn btn-refresh" id="refetchBtn">
+      <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+    <div class="header-spacer"></div>
+    <button class="btn btn-ghost" id="themeBtn" title="Toggle light/dark" style="font-size:1rem;padding:7px 11px;"></button>
+    <div style="position:relative;" id="navDropdown">
+      <button class="btn btn-ghost" id="navDropBtn" style="gap:6px;">
+        Dashboards
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="navDropMenu" style="display:none; position:absolute; top:calc(100% + 6px); right:0; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:6px; min-width:190px; z-index:200; box-shadow:0 12px 32px rgba(0,0,0,0.4);">
+        <a href="home.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.12s;" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='';this.style.color='var(--text-muted)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Home
+        </a>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.12s;" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='';this.style.color='var(--text-muted)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Sales Dashboard
+        </a>
+        <a href="meta-ads.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--blue);background:var(--blue-bg);text-decoration:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Meta Ads
+        </a>
+        <a href="performance.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.12s;" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='';this.style.color='var(--text-muted)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Funnel Performance
+        </a>
       </div>
     </div>
-    <div class="header-right">
-      <div class="filter-group">
-        <label>From</label>
-        <input type="date" id="dateFrom">
-        <span class="filter-sep">—</span>
-        <label>To</label>
-        <input type="date" id="dateTo">
-        <button class="btn btn-primary" id="applyFilter">Apply</button>
-        <button class="btn btn-ghost" id="clearFilter">Reset</button>
-      </div>
-      <button class="btn btn-refresh" id="refetchBtn" title="Re-fetch live data">
-        <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        Refresh
-      </button>
-      <span class="filter-tag" id="filterTag"></span>
-      <div class="nav-dropdown" id="navDropdown" style="display:none; position:relative;">
-        <button class="btn btn-ghost" id="navDropBtn" style="gap:6px;">
-          Dashboards
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="nav-dropdown-menu" id="navDropMenu" style="display:none;">
-          <a href="index.html" class="nav-drop-item nav-drop-active">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-            Sales Dashboard
-          </a>
-          <a href="meta-ads.html" class="nav-drop-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-            Meta Ads
-          </a>
-          <a href="performance.html" class="nav-drop-item">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Funnel Performance
-          </a>
-        </div>
-      </div>
-      <button class="btn btn-ghost" id="adminBtn" style="display:none; gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg>
-        Admin
-      </button>
-      <div class="user-chip">
-        <div class="user-avatar" id="userAvatar">U</div>
-        <span id="userEmail"></span>
-      </div>
-      <button class="btn-icon" id="signoutBtn" title="Sign out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span id="userEmail"></span>
     </div>
-  </div>
+    <button class="btn btn-ghost" id="signOutBtn">Sign Out</button>
+  </header>
+
   <div class="main">
-    <div class="filters-row">
-      <div class="funnel-tabs" id="funnelTabs">
-        <button class="funnel-tab active" data-funnel="all">
-          <span class="funnel-dot" style="background:#6b9eff"></span>All
-        </button>
-        <button class="funnel-tab" data-funnel="Artistic">
-          <span class="funnel-dot" style="background:#34d399"></span>VSL Opt In
-        </button>
-        <button class="funnel-tab" data-funnel="Artisticv2">
-          <span class="funnel-dot" style="background:#f472b6"></span>VSL No Opt In
-        </button>
-      </div>
-      <div class="rep-filter">
-        <span class="rep-filter-label">Rep</span>
-        <select class="rep-select" id="repSelect">
-          <option value="">All Reps</option>
-        </select>
-      </div>
+    <!-- KPIs -->
+    <div class="section-head" style="margin-bottom:14px;">Overview</div>
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card k-blue"><div class="kpi-label">Total Spend</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card k-cyan"><div class="kpi-label">Impressions</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card k-green"><div class="kpi-label">Clicks</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card k-pink"><div class="kpi-label">Avg CTR</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card k-gold"><div class="kpi-label">Avg CPM</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card k-purple"><div class="kpi-label">Avg CPC</div><div class="kpi-value">—</div></div>
     </div>
-    <div class="section-label">Performance Overview</div>
-    <div class="hero-kpis" id="heroKpis"></div>
-    <div class="section-label">Cohort Metrics</div>
-    <div class="section-subhead">First Call / Day 1</div>
-    <div class="stats-grid" id="statsDay1"></div>
-    <div class="section-subhead">Day 2</div>
-    <div class="stats-grid" id="statsDay2"></div>
-    <div class="section-subhead">Day 3</div>
-    <div class="stats-grid" id="statsDay3"></div>
-    <div class="section-subhead">Totals</div>
-    <div class="stats-grid" id="statsTotals"></div>
-    <div class="charts-row">
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-          </div>
-          <div class="chart-title">Daily Leads / Calls / Contacted</div>
-        </div>
-        <div class="bar-chart-wrap"><canvas id="barChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-header">
-          <div class="chart-icon" style="background:var(--green-bg); color:var(--green);">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10H12V2z"/></svg>
-          </div>
-          <div class="chart-title">Close Rate Breakdown</div>
-        </div>
-        <div class="pie-chart-wrap"><canvas id="pieChart"></canvas></div>
-      </div>
+
+    <!-- Daily chart -->
+    <div class="chart-card">
+      <div class="chart-title">Daily Spend &amp; Clicks</div>
+      <div class="chart-wrap"><canvas id="insightChart"></canvas></div>
     </div>
+
+    <!-- Campaigns table -->
     <div class="table-card">
       <div class="table-toolbar">
-        <div class="table-title" id="tableTitle">All Leads <span class="count" id="tableCount">0</span></div>
-        <div class="search-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="search" placeholder="Search by name, email, phone, rep...">
-        </div>
+        <div class="table-title">Campaigns <span class="count" id="campaignCount">0</span></div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr id="thead"></tr></thead>
-          <tbody id="tbody"></tbody>
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Status</th>
+              <th style="text-align:right;">Spend</th>
+              <th style="text-align:right;">Impressions</th>
+              <th style="text-align:right;">Clicks</th>
+              <th style="text-align:right;">CTR</th>
+              <th style="text-align:right;">CPM</th>
+              <th style="text-align:right;">CPC</th>
+            </tr>
+          </thead>
+          <tbody id="campaignTbody"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Ad Sets table -->
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="table-title">Ad Sets <span class="count" id="adsetCount">0</span></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ad Set</th>
+              <th>Status</th>
+              <th>Objective</th>
+              <th style="text-align:right;">Daily Budget</th>
+              <th style="text-align:right;">Lifetime Budget</th>
+            </tr>
+          </thead>
+          <tbody id="adsetTbody"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Admin Panel Modal -->
-<div id="adminModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:flex-start; justify-content:center; padding:40px 20px; overflow-y:auto;">
-  <div style="background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:680px; box-shadow:0 24px 64px rgba(0,0,0,0.5);">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
-      <h2 style="font-size:1.15rem; font-weight:700;">Admin Panel</h2>
-      <button id="closeAdminBtn" class="btn btn-ghost" style="padding:6px 12px;">✕ Close</button>
-    </div>
-
-    <!-- Invite section -->
-    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:24px;">
-      <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:12px;">Invite New User</div>
-      <div style="display:flex; gap:10px;">
-        <input class="auth-input" type="email" id="inviteEmail" placeholder="their@email.com" autocomplete="off" style="flex:1;">
-        <button class="btn btn-primary" id="sendInviteBtn" style="white-space:nowrap;">Send Invite</button>
-      </div>
-      <div class="auth-error" id="inviteError" style="margin-top:8px;"></div>
-      <div id="inviteSuccess" style="display:none; color:var(--green); font-size:0.82rem; margin-top:8px;"></div>
-    </div>
-
-    <!-- User list -->
-    <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); margin-bottom:12px;">Manage Users &amp; Permissions</div>
-    <div id="adminUserList"></div>
-  </div>
-</div>
-
-<style>
-.admin-user-row {
-  display:flex; align-items:center; gap:12px; padding:12px 16px;
-  background:var(--surface2); border:1px solid var(--border); border-radius:10px;
-  margin-bottom:8px; flex-wrap:wrap;
-}
-.admin-user-email { flex:1; min-width:160px; font-size:0.83rem; color:var(--text); font-weight:600; }
-.admin-user-perms { display:flex; gap:10px; flex-wrap:wrap; }
-.admin-perm-label {
-  display:flex; align-items:center; gap:5px; font-size:0.75rem;
-  color:var(--text-muted); cursor:pointer; user-select:none;
-  background:var(--surface3); border:1px solid var(--border); border-radius:6px;
-  padding:4px 8px;
-}
-.admin-perm-label input { accent-color: var(--blue); cursor:pointer; }
-.admin-perm-label.admin-label { border-color:rgba(167,139,250,0.4); color:var(--purple); }
-.admin-perm-label.admin-label input { accent-color: var(--purple); }
-.admin-user-msg { font-size:0.75rem; min-width:50px; }
-</style>
-
 <script>
-const SUPABASE_URL = "https://pojqljrhhtnigyrtzdzz.supabase.co";
+const SUPABASE_URL    = "https://pojqljrhhtnigyrtzdzz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
-const API_BASE      = SUPABASE_URL + "/functions/v1/dashboard";
-const INVITE_BASE   = SUPABASE_URL + "/functions/v1/invite";
-const ADMIN_API_BASE = SUPABASE_URL + "/functions/v1/admin-api";
+const META_ADS_BASE  = SUPABASE_URL + "/functions/v1/meta-ads";
+
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
 });
 
 function setState(s) { document.body.dataset.state = s; }
 
-// Detect invite link (Supabase puts type=invite in URL hash after redirect)
-const _hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-const isInviteLink = _hashParams.get('type') === 'invite';
+let currentSession = null;
+let insightChart = null;
 
+// ── Auth ─────────────────────────────────────────────────
 async function initAuth() {
-  if (isInviteLink) {
-    // Supabase auto-processes the hash token; wait for the session via onAuthStateChange
-    setState('set-password');
-    supa.auth.onAuthStateChange((_event, sess) => {
-      if (!sess) { setState('login'); return; }
-      // Still in invite flow — keep on set-password until user sets a password
-      if (isInviteLink && document.body.dataset.state === 'set-password') return;
-      onAuthed(sess);
-    });
-    return;
-  }
   const { data: { session } } = await supa.auth.getSession();
   if (session) { onAuthed(session); return; }
   setState('login');
-  supa.auth.onAuthStateChange((_event, sess) => {
+  supa.auth.onAuthStateChange((_e, sess) => {
     if (sess) onAuthed(sess);
     else setState('login');
   });
 }
 
-let currentSession = null;
 async function onAuthed(session) {
   currentSession = session;
   const email = session.user.email || '';
   document.getElementById('userEmail').textContent = email;
   document.getElementById('userAvatar').textContent = (email[0] || 'U').toUpperCase();
-  // Role-based nav
+
+  // Role check
+  const perms = session.user.app_metadata?.permissions ?? [];
   const isAdmin = session.user.app_metadata?.is_admin ?? false;
-  const perms   = session.user.app_metadata?.permissions ?? [];
-  if (isAdmin || perms.includes('marketing')) {
-    document.getElementById('navDropdown').style.display = 'block';
+  if (!isAdmin && !perms.includes('marketing')) {
+    setState('denied');
+    return;
   }
-  if (isAdmin) {
-    document.getElementById('adminBtn').style.display = 'inline-flex';
-  }
+
   setState('dashboard');
-  if (!boundAfterAuth) bindAfterAuth();
-  await loadData();
+  setDefaultDates();
+  await loadAll();
 }
 
-// ── Login: email + password ───────────────────────────────────
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
+function setDefaultDates() {
+  const to   = new Date();
+  const from = new Date(Date.now() - 30 * 86400000);
+  document.getElementById('dateTo').value   = to.toISOString().slice(0, 10);
+  document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
+}
+
+// ── Data loading ──────────────────────────────────────────
+async function apiFetch(api) {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  const params = new URLSearchParams({ api, from, to });
+  const r = await fetch(META_ADS_BASE + '?' + params, {
+    cache: 'no-store',
+    headers: { Authorization: 'Bearer ' + currentSession.access_token }
+  });
+  if (r.status === 401) { await supa.auth.signOut(); return null; }
+  if (!r.ok) {
+    const j = await r.json().catch(() => ({}));
+    throw new Error(j.error || 'HTTP ' + r.status);
+  }
+  return r.json();
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refetchBtn');
+  btn.classList.add('spinning');
+
+  try {
+    const [insights, campaigns, adsets] = await Promise.all([
+      apiFetch('insights'),
+      apiFetch('campaigns'),
+      apiFetch('adsets'),
+    ]);
+    if (insights)  renderInsights(insights);
+    if (campaigns) renderCampaigns(campaigns, insights || []);
+    if (adsets)    renderAdsets(adsets);
+  } catch (err) {
+    document.getElementById('kpiGrid').innerHTML =
+      '<div class="kpi-card" style="grid-column:1/-1;"><div class="kpi-label error">Error: ' + (err.message || err) + '</div></div>';
+    console.error(err);
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+// ── Formatters ────────────────────────────────────────────
+const fmtMoney = v => '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtNum   = v => Number(v || 0).toLocaleString();
+const fmtPct   = v => (Number(v || 0) * 100).toFixed(2) + '%';  // Meta CTR is 0-100 already sometimes
+const safePct  = v => { const n = Number(v || 0); return n > 1 ? n.toFixed(2) + '%' : (n * 100).toFixed(2) + '%'; };
+const fmtCur   = v => '$' + Number(v || 0).toFixed(2);
+
+function statusBadge(s) {
+  const cls = s === 'ACTIVE' ? 'status-active' : s === 'PAUSED' ? 'status-paused' : 'status-other';
+  return `<span class="status-badge ${cls}">${s}</span>`;
+}
+
+// ── Render insights (KPIs + chart) ────────────────────────
+function renderInsights(rows) {
+  let totalSpend = 0, totalImpressions = 0, totalClicks = 0;
+  const byDate = {};
+
+  rows.forEach(r => {
+    totalSpend       += Number(r.spend || 0);
+    totalImpressions += Number(r.impressions || 0);
+    totalClicks      += Number(r.clicks || 0);
+    const d = r.date_start || r.date_stop || '';
+    if (d) {
+      byDate[d] = byDate[d] || { spend: 0, clicks: 0 };
+      byDate[d].spend  += Number(r.spend || 0);
+      byDate[d].clicks += Number(r.clicks || 0);
+    }
+  });
+
+  const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+  const avgCPM = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+  const avgCPC = totalClicks > 0 ? totalSpend / totalClicks : 0;
+
+  // KPI cards
+  const kpis = [
+    { cls: 'k-blue',   label: 'Total Spend',   value: fmtMoney(totalSpend) },
+    { cls: 'k-cyan',   label: 'Impressions',   value: fmtNum(totalImpressions) },
+    { cls: 'k-green',  label: 'Clicks',        value: fmtNum(totalClicks) },
+    { cls: 'k-pink',   label: 'Avg CTR',       value: avgCTR.toFixed(2) + '%' },
+    { cls: 'k-gold',   label: 'Avg CPM',       value: fmtCur(avgCPM) },
+    { cls: 'k-purple', label: 'Avg CPC',       value: fmtCur(avgCPC) },
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k =>
+    `<div class="kpi-card ${k.cls}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+    </div>`
+  ).join('');
+
+  // Chart
+  const dates  = Object.keys(byDate).sort();
+  const spend  = dates.map(d => byDate[d].spend);
+  const clicks = dates.map(d => byDate[d].clicks);
+
+  const fmtLabel = d => { const [y,m,day] = d.split('-'); return `${m}/${day}`; };
+
+  if (insightChart) insightChart.destroy();
+  const ctx = document.getElementById('insightChart').getContext('2d');
+  const blueGrad = ctx.createLinearGradient(0, 0, 0, 280);
+  blueGrad.addColorStop(0, 'rgba(24,119,242,0.8)');
+  blueGrad.addColorStop(1, 'rgba(24,119,242,0.3)');
+  const pinkGrad = ctx.createLinearGradient(0, 0, 0, 280);
+  pinkGrad.addColorStop(0, 'rgba(225,48,108,0.8)');
+  pinkGrad.addColorStop(1, 'rgba(225,48,108,0.3)');
+
+  insightChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dates.map(fmtLabel),
+      datasets: [
+        {
+          label: 'Spend ($)',
+          data: spend,
+          backgroundColor: blueGrad,
+          borderRadius: 5,
+          yAxisID: 'ySpend',
+          order: 2,
+        },
+        {
+          label: 'Clicks',
+          data: clicks,
+          type: 'line',
+          borderColor: '#e1306c',
+          backgroundColor: 'rgba(225,48,108,0.1)',
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#e1306c',
+          tension: 0.35,
+          fill: false,
+          yAxisID: 'yClicks',
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#8890b0', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: '#1a1e30', borderColor: '#252840', borderWidth: 1,
+          titleColor: '#e8eaf4', bodyColor: '#8890b0', padding: 10,
+          callbacks: {
+            label: ctx => ctx.dataset.label === 'Spend ($)'
+              ? ' $' + ctx.parsed.y.toFixed(2)
+              : ' ' + ctx.parsed.y.toLocaleString() + ' clicks',
+          },
+        },
+      },
+      scales: {
+        x: { grid: { color: 'rgba(37,40,64,0.6)' }, ticks: { color: '#4a5070', font: { size: 10 } } },
+        ySpend:  { position: 'left',  grid: { color: 'rgba(37,40,64,0.6)' }, ticks: { color: '#4a5070', font: { size: 10 }, callback: v => '$' + v.toLocaleString() } },
+        yClicks: { position: 'right', grid: { display: false }, ticks: { color: '#4a5070', font: { size: 10 }, callback: v => v.toLocaleString() } },
+      },
+    },
+  });
+}
+
+// ── Render campaigns ──────────────────────────────────────
+function renderCampaigns(campaigns, insights) {
+  document.getElementById('campaignCount').textContent = campaigns.length;
+
+  // Aggregate insights by campaign
+  const byId = {};
+  insights.forEach(r => {
+    const id = r.campaign_id;
+    if (!id) return;
+    byId[id] = byId[id] || { spend: 0, impressions: 0, clicks: 0 };
+    byId[id].spend       += Number(r.spend || 0);
+    byId[id].impressions += Number(r.impressions || 0);
+    byId[id].clicks      += Number(r.clicks || 0);
+  });
+
+  if (!campaigns.length) {
+    document.getElementById('campaignTbody').innerHTML = '<tr><td colspan="8" class="empty">No campaigns found.</td></tr>';
+    return;
+  }
+
+  document.getElementById('campaignTbody').innerHTML = campaigns.map(c => {
+    const ins = byId[c.id] || { spend: 0, impressions: 0, clicks: 0 };
+    const ctr = ins.impressions > 0 ? (ins.clicks / ins.impressions) * 100 : 0;
+    const cpm = ins.impressions > 0 ? (ins.spend / ins.impressions) * 1000 : 0;
+    const cpc = ins.clicks > 0 ? ins.spend / ins.clicks : 0;
+    return `<tr>
+      <td style="color:var(--text); font-weight:600; max-width:220px; overflow:hidden; text-overflow:ellipsis;">${c.name || '—'}</td>
+      <td>${statusBadge(c.status || '')}</td>
+      <td class="num">${fmtMoney(ins.spend)}</td>
+      <td class="num">${fmtNum(ins.impressions)}</td>
+      <td class="num">${fmtNum(ins.clicks)}</td>
+      <td class="num">${ctr.toFixed(2)}%</td>
+      <td class="num">${fmtCur(cpm)}</td>
+      <td class="num">${fmtCur(cpc)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Render ad sets ────────────────────────────────────────
+function renderAdsets(adsets) {
+  document.getElementById('adsetCount').textContent = adsets.length;
+  if (!adsets.length) {
+    document.getElementById('adsetTbody').innerHTML = '<tr><td colspan="5" class="empty">No ad sets found.</td></tr>';
+    return;
+  }
+  const fmtBudget = v => v && v !== '0' ? fmtMoney(Number(v) / 100) : '—';
+  document.getElementById('adsetTbody').innerHTML = adsets.map(a => `<tr>
+    <td style="color:var(--text); font-weight:600;">${a.name || '—'}</td>
+    <td>${statusBadge(a.status || '')}</td>
+    <td style="color:var(--text-muted);">${(a.optimization_goal || '').replace(/_/g, ' ') || '—'}</td>
+    <td class="num">${fmtBudget(a.daily_budget)}/day</td>
+    <td class="num">${fmtBudget(a.lifetime_budget)}</td>
+  </tr>`).join('');
+}
+
+// ── Event listeners ───────────────────────────────────────
+document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const email = document.getElementById('email').value.trim();
+  const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
-  const errEl = document.getElementById('loginError');
-  const btn = document.getElementById('sendBtn');
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('sendBtn');
   errEl.textContent = '';
-  if (!email || !password) return;
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     const { data, error } = await supa.auth.signInWithPassword({ email, password });
@@ -779,143 +690,20 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
-// ── Set password (invite flow) ────────────────────────────────
-document.getElementById('setPasswordForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const pw = document.getElementById('newPassword').value;
-  const pw2 = document.getElementById('confirmPassword').value;
-  const errEl = document.getElementById('setPasswordError');
-  const btn = document.getElementById('setPasswordBtn');
-  errEl.textContent = '';
-  if (pw.length < 8) { errEl.textContent = 'Password must be at least 8 characters'; return; }
-  if (pw !== pw2) { errEl.textContent = 'Passwords do not match'; return; }
-  btn.disabled = true; btn.textContent = 'Activating…';
-  try {
-    const { error } = await supa.auth.updateUser({ password: pw });
-    if (error) throw error;
-    const { data: { session } } = await supa.auth.getSession();
-    if (session) onAuthed(session);
-    else setState('login');
-  } catch (err) {
-    errEl.textContent = err.message || 'Failed to set password';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Activate Account';
-  }
-});
-
-// ── Admin Panel ───────────────────────────────────────────────
-const AVAILABLE_PERMISSIONS = ['sales', 'marketing'];
-
-document.getElementById('adminBtn').addEventListener('click', () => {
-  document.getElementById('adminModal').style.display = 'flex';
-  loadAdminUsers();
-});
-document.getElementById('closeAdminBtn').addEventListener('click', () => {
-  document.getElementById('adminModal').style.display = 'none';
-});
-document.getElementById('adminModal').addEventListener('click', (e) => {
-  if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
-});
-
-async function loadAdminUsers() {
-  const list = document.getElementById('adminUserList');
-  list.innerHTML = '<div style="color:var(--text-muted);font-size:0.85rem;padding:12px 0;">Loading users…</div>';
-  try {
-    const r = await fetch(ADMIN_API_BASE + '?api=users', {
-      headers: { Authorization: 'Bearer ' + currentSession.access_token }
-    });
-    const users = await r.json();
-    if (!r.ok) throw new Error(users.error || 'Failed to load users');
-    renderAdminUsers(users);
-  } catch (err) {
-    list.innerHTML = '<div style="color:var(--red);font-size:0.85rem;">' + (err.message || err) + '</div>';
-  }
+// ── Theme ─────────────────────────────────────────────────
+const _savedTheme = localStorage.getItem('theme') || 'dark';
+if (_savedTheme === 'light') document.body.classList.add('light');
+function _updateThemeBtn() {
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
 }
-
-function renderAdminUsers(users) {
-  const list = document.getElementById('adminUserList');
-  list.innerHTML = users.map(u => `
-    <div class="admin-user-row" data-id="${u.id}">
-      <div class="admin-user-email">${u.email || u.id}</div>
-      <div class="admin-user-perms">
-        ${AVAILABLE_PERMISSIONS.map(p => `
-          <label class="admin-perm-label">
-            <input type="checkbox" class="perm-check" data-perm="${p}" ${(u.permissions || []).includes(p) ? 'checked' : ''}>
-            ${p}
-          </label>
-        `).join('')}
-        <label class="admin-perm-label admin-label">
-          <input type="checkbox" class="admin-check" ${u.is_admin ? 'checked' : ''}>
-          admin
-        </label>
-      </div>
-      <button class="btn btn-ghost admin-save-btn" style="font-size:0.72rem;padding:5px 10px;" data-id="${u.id}">Save</button>
-      <div class="admin-user-msg"></div>
-    </div>
-  `).join('');
-
-  list.querySelectorAll('.admin-save-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const row = btn.closest('.admin-user-row');
-      const userId = btn.dataset.id;
-      const permissions = [...row.querySelectorAll('.perm-check')]
-        .filter(c => c.checked).map(c => c.dataset.perm);
-      const is_admin = row.querySelector('.admin-check').checked;
-      const msg = row.querySelector('.admin-user-msg');
-      btn.disabled = true; btn.textContent = 'Saving…';
-      try {
-        const r = await fetch(ADMIN_API_BASE + '?api=set-permissions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + currentSession.access_token,
-          },
-          body: JSON.stringify({ userId, permissions, is_admin }),
-        });
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error || 'Failed to save');
-        msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved';
-      } catch (err) {
-        msg.style.color = 'var(--red)'; msg.textContent = err.message || 'Error';
-      } finally {
-        btn.disabled = false; btn.textContent = 'Save';
-        setTimeout(() => { msg.textContent = ''; }, 3000);
-      }
-    });
-  });
-}
-
-// ── Invite (inside Admin Panel) ───────────────────────────────
-document.getElementById('sendInviteBtn').addEventListener('click', async () => {
-  const email = document.getElementById('inviteEmail').value.trim();
-  const errEl = document.getElementById('inviteError');
-  const successEl = document.getElementById('inviteSuccess');
-  const btn = document.getElementById('sendInviteBtn');
-  errEl.textContent = ''; successEl.style.display = 'none';
-  if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email'; return; }
-  btn.disabled = true; btn.textContent = 'Sending…';
-  try {
-    const res = await fetch(INVITE_BASE, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + currentSession.access_token,
-      },
-      body: JSON.stringify({ email }),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Failed to send invite');
-    successEl.textContent = 'Invitation sent to ' + email;
-    successEl.style.display = 'block';
-    document.getElementById('inviteEmail').value = '';
-  } catch (err) {
-    errEl.textContent = err.message || 'Failed to send invite';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Send Invite';
-  }
+_updateThemeBtn();
+document.getElementById('themeBtn').addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  _updateThemeBtn();
 });
 
-// ── Nav dropdown ──────────────────────────────────────────────
 document.getElementById('navDropBtn').addEventListener('click', (e) => {
   e.stopPropagation();
   const m = document.getElementById('navDropMenu');
@@ -926,520 +714,18 @@ document.addEventListener('click', () => {
   if (m) m.style.display = 'none';
 });
 
-let state = { from: null, to: null, daily: [], leads: [], funnel: null };
-let activeFunnel = 'all';
-let activeRep = '';
-let sortCol = -1, sortAsc = true;
-let currentTableRows = [];
-let barChart = null, pieChart = null;
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await supa.auth.signOut();
+  setState('login');
+});
 
-async function loadData() {
-  if (!currentSession) return;
-  const f = document.getElementById('dateFrom').value;
-  const t = document.getElementById('dateTo').value;
-  const params = new URLSearchParams({ api: 'data' });
-  if (f) params.set('from', f);
-  if (t) params.set('to', t);
-  if (activeFunnel && activeFunnel !== 'all') params.set('funnel', activeFunnel);
-  if (activeRep) params.set('rep', activeRep);
+document.getElementById('refetchBtn').addEventListener('click', loadAll);
 
-  const btn = document.getElementById('refetchBtn');
-  btn.classList.add('spinning');
-  document.getElementById('funnelTabs').classList.add('loading');
+document.getElementById('dateFrom').addEventListener('change', loadAll);
+document.getElementById('dateTo').addEventListener('change', loadAll);
 
-  try {
-    const r = await fetch(API_BASE + '?' + params.toString(), {
-      cache: 'no-store',
-      headers: { 'Authorization': 'Bearer ' + currentSession.access_token }
-    });
-    if (r.status === 401) { await supa.auth.signOut(); return; }
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    if (data.error) throw new Error(data.error);
-    state = data;
-    if (!document.getElementById('dateFrom').value) document.getElementById('dateFrom').value = data.from;
-    if (!document.getElementById('dateTo').value)   document.getElementById('dateTo').value   = data.to;
-    document.getElementById('filterTag').textContent = data.from + '  to  ' + data.to;
-    render();
-  } catch (err) {
-    console.error(err);
-    document.getElementById('heroKpis').innerHTML = '<div class="empty error">Error: ' + (err.message || err) + '</div>';
-  } finally {
-    btn.classList.remove('spinning');
-    document.getElementById('funnelTabs').classList.remove('loading');
-  }
-}
-
-async function loadRepList() {
-  try {
-    const r = await fetch(API_BASE + '?api=reps', {
-      cache: 'no-store',
-      headers: { 'Authorization': 'Bearer ' + currentSession.access_token }
-    });
-    if (!r.ok) return;
-    const reps = await r.json();
-    const sel = document.getElementById('repSelect');
-    sel.innerHTML = '<option value="">All Reps</option>' +
-      reps.map(rep => '<option value="' + rep + '">' + rep + '</option>').join('');
-  } catch (e) { console.warn('Could not load rep list', e); }
-}
-
-function n(v) { return Number(v) || 0; }
-function fmtNum(v) { const x = n(v); return Number.isInteger(x) ? x.toLocaleString() : x.toFixed(2); }
-function fmtPct(v) { return n(v).toFixed(1) + '%'; }
-function fmtHours(v) { const x = n(v); return x === 0 ? '0h' : x.toFixed(1) + 'h'; }
-function fmtTs(v) {
-  if (!v) return '';
-  let s = v.includes('T') ? v : v.replace(' ', 'T');
-  if (!s.endsWith('Z') && !s.includes('+')) s += 'Z'; // treat as UTC
-  const d = new Date(s);
-  if (isNaN(d)) return v;
-  return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
-}
-function fmtDate(v) {
-  if (!v) return '';
-  const d = new Date(v + 'T00:00:00');
-  if (isNaN(d)) return v;
-  return d.toLocaleDateString('en-US', { timeZone: 'America/New_York', month: '2-digit', day: '2-digit' });
-}
-function fmtDuration(sec) {
-  const s = n(sec);
-  if (s === 0) return '—';
-  if (s < 60) return Math.round(s) + 's';
-  const m = Math.floor(s / 60);
-  const r = Math.round(s % 60);
-  return m + 'm ' + r + 's';
-}
-function initials(name, email) {
-  const src = (name || email || '').trim();
-  if (!src) return '?';
-  const parts = src.split(/[\s@.]+/).filter(Boolean);
-  return ((parts[0] || '')[0] + ((parts[1] || '')[0] || '')).toUpperCase();
-}
-const AVATAR_COLORS = [
-  'linear-gradient(135deg, #6b9eff 0%, #4a7de0 100%)',
-  'linear-gradient(135deg, #34d399 0%, #10b981 100%)',
-  'linear-gradient(135deg, #f472b6 0%, #db2777 100%)',
-  'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-  'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
-  'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
-];
-function avatarColor(seed) {
-  const s = String(seed || '');
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
-}
-function sparkline(values, color) {
-  const w = 110, h = 36, pad = 2;
-  if (!values.length) return '';
-  const max = Math.max(...values, 1);
-  const stepX = values.length > 1 ? (w - pad * 2) / (values.length - 1) : 0;
-  const scaleY = (h - pad * 2) / Math.max(1, max);
-  const pts = values.map((v, i) => {
-    const x = pad + i * stepX;
-    const y = h - pad - v * scaleY;
-    return [x, y];
-  });
-  const path = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-  const fill = path + ' L' + (w - pad).toFixed(1) + ' ' + (h - pad).toFixed(1) + ' L' + pad.toFixed(1) + ' ' + (h - pad).toFixed(1) + ' Z';
-  const id = 'g' + Math.random().toString(36).slice(2, 8);
-  return '<svg class="kpi-spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
-    '<defs><linearGradient id="' + id + '" x1="0" x2="0" y1="0" y2="1">' +
-      '<stop offset="0" stop-color="' + color + '" stop-opacity="0.45"/>' +
-      '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/>' +
-    '</linearGradient></defs>' +
-    '<path d="' + fill + '" fill="url(#' + id + ')"/>' +
-    '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '</svg>';
-}
-
-const ICONS = {
-  users: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  phone: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-  check: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
-  trophy: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
-  money: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-  clock: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  pct: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
-  layers: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
-  trendUp: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
-  arrowUp: '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>',
-  arrowDown: '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>',
-};
-
-function render() {
-  renderHeroKpis();
-  renderStatsGrid();
-  renderBarChart();
-  renderPieChart();
-  renderTable();
-}
-
-function trendBadge(curr, prev) {
-  if (!prev) return '<span class="kpi-trend flat">—</span>';
-  const pct = ((curr - prev) / prev) * 100;
-  if (Math.abs(pct) < 0.5) return '<span class="kpi-trend flat">flat</span>';
-  const cls = pct > 0 ? 'up' : 'down';
-  const icon = pct > 0 ? ICONS.arrowUp : ICONS.arrowDown;
-  return '<span class="kpi-trend ' + cls + '">' + icon + Math.abs(pct).toFixed(0) + '%</span>';
-}
-
-function renderHeroKpis() {
-  const daily = state.daily;
-  if (!daily.length) {
-    document.getElementById('heroKpis').innerHTML = '<div class="empty">No data for this range.</div>';
-    return;
-  }
-  const sorted = [...daily].sort((a, b) => a.stat_date.localeCompare(b.stat_date));
-  const half = Math.floor(sorted.length / 2);
-  const prev = sorted.slice(0, half);
-  const curr = sorted.slice(half);
-  const sumKey = (rows, k) => rows.reduce((s, r) => s + n(r[k]), 0);
-
-  const totalLeads       = sumKey(sorted, 'leads');
-  const totalCalls       = sumKey(sorted, 'calls');
-  const totalContacted   = sumKey(sorted, 'contacted');
-  const totalDay1Closes  = sumKey(sorted, 'day1_closes');
-  const totalGrossIncome = sumKey(sorted, 'gross_income');
-
-  const colors = { blue: '#6b9eff', green: '#34d399', pink: '#f472b6', gold: '#fbbf24', emerald: '#10b981' };
-  const fmtMoney = (v) => '$' + (Math.round(n(v))).toLocaleString();
-
-  const kpis = [
-    { color: 'blue',  icon: ICONS.users,  label: 'Total Leads', value: fmtNum(totalLeads),
-      trend: trendBadge(sumKey(curr, 'leads'),     sumKey(prev, 'leads')),
-      sub: sorted.length + ' days', spark: sparkline(sorted.map(r => n(r.leads)), colors.blue) },
-    { color: 'green', icon: ICONS.phone,  label: 'Total Calls', value: fmtNum(totalCalls),
-      trend: trendBadge(sumKey(curr, 'calls'),     sumKey(prev, 'calls')),
-      sub: (totalLeads ? (totalCalls / totalLeads).toFixed(2) : '0') + ' per lead',
-      spark: sparkline(sorted.map(r => n(r.calls)), colors.green) },
-    { color: 'pink',  icon: ICONS.check,  label: 'Contacted', value: fmtNum(totalContacted),
-      trend: trendBadge(sumKey(curr, 'contacted'), sumKey(prev, 'contacted')),
-      sub: (totalLeads ? (100 * totalContacted / totalLeads).toFixed(1) : '0') + '% of leads',
-      spark: sparkline(sorted.map(r => n(r.contacted)), colors.pink) },
-    { color: 'gold',  icon: ICONS.trophy, label: 'Closes (Day 1)', value: fmtNum(totalDay1Closes),
-      trend: trendBadge(sumKey(curr, 'day1_closes'), sumKey(prev, 'day1_closes')),
-      sub: (totalLeads ? (100 * totalDay1Closes / totalLeads).toFixed(1) : '0') + '% same-day close',
-      spark: sparkline(sorted.map(r => n(r.day1_closes)), colors.gold) },
-    { color: 'emerald', icon: ICONS.money, label: 'GI (Gross Income)', value: fmtMoney(totalGrossIncome),
-      trend: trendBadge(sumKey(curr, 'gross_income'), sumKey(prev, 'gross_income')),
-      sub: (totalLeads ? fmtMoney(totalGrossIncome / totalLeads) : '$0') + ' per lead',
-      spark: sparkline(sorted.map(r => n(r.gross_income)), colors.emerald) },
-  ];
-
-  document.getElementById('heroKpis').innerHTML = kpis.map(k =>
-    '<div class="kpi k-' + k.color + '">' +
-      '<div class="kpi-row">' +
-        '<div>' +
-          '<div class="kpi-label">' + k.label + '</div>' +
-          '<div class="kpi-value">' + k.value + '</div>' +
-          '<div class="kpi-sub">' + k.trend + ' · ' + k.sub + '</div>' +
-        '</div>' +
-        '<div class="kpi-icon">' + k.icon + '</div>' +
-      '</div>' +
-      k.spark +
-    '</div>'
-  ).join('');
-}
-
-function renderStatsGrid() {
-  const daily = state.daily;
-  const day1El  = document.getElementById('statsDay1');
-  const day2El  = document.getElementById('statsDay2');
-  const day3El  = document.getElementById('statsDay3');
-  const totEl   = document.getElementById('statsTotals');
-  if (!daily.length) {
-    [day1El, day2El, day3El, totEl].forEach(el => { if (el) el.innerHTML = ''; });
-    return;
-  }
-  const sum = (k) => daily.reduce((s,d) => s + n(d[k]), 0);
-  const wAvg = (numK, weightK) => {
-    let num = 0, den = 0;
-    daily.forEach(d => {
-      const v = d[numK], w = n(d[weightK]);
-      if (v != null && w > 0) { num += n(v) * w; den += w; }
-    });
-    return den > 0 ? (num / den) : null;
-  };
-
-  const totalLeads          = sum('leads');
-  const totalCalls          = sum('calls');
-  const totalContacted      = sum('contacted');
-  const totalContactedFirst = sum('contacted_first_call');
-  const totalDay1Closes     = sum('day1_closes');
-  const totalDay2Calls      = sum('day2_calls');
-  const totalDay2Contacted  = sum('day2_contacted');
-  const totalDay2Closes     = sum('day2_closes');
-  const totalDay3Calls      = sum('day3_calls');
-  const totalDay3Contacted  = sum('day3_contacted');
-  const totalDay3Closes     = sum('day3_closes');
-  const totalCumContacted   = Math.round(wAvg('contacted_cumulative_pct', 'leads') * totalLeads / 100) || 0;
-  const totalClosesAfter7d  = sum('closes_after_7d');
-  const totalClosesTotal    = sum('closes_total');
-
-  const avgFirstHrs = wAvg('avg_first_call_hours', 'leads');
-  const avgFollowupsD1 = wAvg('followup_day1_avg', 'leads');
-
-  const pct = (num, den) => den > 0 ? (100 * num / den) : null;
-  const fmtP = (v) => v == null ? '—' : v.toFixed(1) + '%';
-  const fmtN = (v) => v == null ? '—' : fmtNum(v);
-  const fmtH = (v) => {
-    if (v == null) return '—';
-    const totalMins = Math.round(v * 60);
-    const hrs = Math.floor(totalMins / 60);
-    const mins = totalMins % 60;
-    if (hrs === 0) return mins + 'm';
-    return hrs + 'h ' + mins + 'm';
-  };
-  const fmt2 = (v) => v == null ? '—' : v.toFixed(2);
-
-  const card = (color, label, value, sub) =>
-    '<div class="stat-card sc-' + color + '">' +
-      '<div class="stat-label">' + label + '</div>' +
-      '<div class="stat-value">' + value + '</div>' +
-      (sub ? '<div class="stat-sub">' + sub + '</div>' : '') +
-    '</div>';
-
-  day1El.innerHTML = [
-    card('pink',   'Contacted %',               fmtP(pct(totalContacted, totalLeads)),      totalContacted + ' / ' + totalLeads + ' leads'),
-    card('cyan',   'Avg Time to 1st Call',      fmtH(avgFirstHrs),                          'weighted across leads'),
-    card('green',  'Contacted on 1st Call',     fmtN(totalContactedFirst),                  fmtP(pct(totalContactedFirst, totalLeads)) + ' of leads'),
-    card('blue',   '% Contacted from 1st Call', fmtP(pct(totalContactedFirst, totalLeads)), 'first-call answer rate'),
-    card('purple', '# Follow-ups Day 1 (avg)',  fmt2(avgFollowupsD1),                       'avg per lead w/ >1 call'),
-    card('gold',   'Day 1 Closes',              fmtN(totalDay1Closes),                      fmtP(pct(totalDay1Closes, totalLeads)) + ' of leads'),
-  ].join('');
-
-  day2El.innerHTML = [
-    card('blue',  '# Calls Day 2',       fmtN(totalDay2Calls),     fmtP(pct(totalDay2Calls, totalLeads)) + ' of leads'),
-    card('pink',  '# Contacted Day 2',   fmtN(totalDay2Contacted), fmtP(pct(totalDay2Contacted, totalLeads)) + ' of leads'),
-    card('green', '% Contacted Day 2',   fmtP(pct(totalDay2Contacted, totalDay2Calls)),  'of Day 2 reach'),
-    card('gold',  'Day 2 Closes',        fmtN(totalDay2Closes),    fmtP(pct(totalDay2Closes, totalLeads)) + ' of leads'),
-  ].join('');
-
-  day3El.innerHTML = [
-    card('blue',  '# Calls Day 3',       fmtN(totalDay3Calls),     fmtP(pct(totalDay3Calls, totalLeads)) + ' of leads'),
-    card('pink',  '# Contacted Day 3',   fmtN(totalDay3Contacted), fmtP(pct(totalDay3Contacted, totalLeads)) + ' of leads'),
-    card('green', '% Contacted Day 3',   fmtP(pct(totalDay3Contacted, totalDay3Calls)),  'of Day 3 reach'),
-    card('gold',  'Day 3 Closes',        fmtN(totalDay3Closes),    fmtP(pct(totalDay3Closes, totalLeads)) + ' of leads'),
-  ].join('');
-
-  totEl.innerHTML = [
-    card('cyan',   '% Contacted Cumulative', fmtP(pct(totalCumContacted, totalLeads)),  'leads ever contacted'),
-    card('purple', 'Closes After 7 Days',    fmtN(totalClosesAfter7d),                  fmtP(pct(totalClosesAfter7d, totalLeads)) + ' of leads'),
-    card('gold',   'Closes Total',           fmtN(totalClosesTotal),                    fmtP(pct(totalClosesTotal, totalLeads)) + ' close rate'),
-    card('green',  '% Closed',               fmtP(pct(totalClosesTotal, totalLeads)),   totalClosesTotal + ' / ' + totalLeads + ' leads'),
-  ].join('');
-}
-
-function renderBarChart() {
-  if (barChart) barChart.destroy();
-  const rows = [...state.daily].sort((a, b) => a.stat_date.localeCompare(b.stat_date));
-  const ctx = document.getElementById('barChart').getContext('2d');
-  const blueGrad = ctx.createLinearGradient(0, 0, 0, 320);
-  blueGrad.addColorStop(0, 'rgba(107,158,255,0.9)');
-  blueGrad.addColorStop(1, 'rgba(107,158,255,0.4)');
-  const greenGrad = ctx.createLinearGradient(0, 0, 0, 320);
-  greenGrad.addColorStop(0, 'rgba(52,211,153,0.9)');
-  greenGrad.addColorStop(1, 'rgba(52,211,153,0.4)');
-  const pinkGrad = ctx.createLinearGradient(0, 0, 0, 320);
-  pinkGrad.addColorStop(0, 'rgba(244,114,182,0.9)');
-  pinkGrad.addColorStop(1, 'rgba(244,114,182,0.4)');
-
-  barChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: rows.map(r => fmtDate(r.stat_date)),
-      datasets: [
-        { label: 'Leads',     data: rows.map(r => n(r.leads)),     backgroundColor: blueGrad,  borderRadius: 6, borderSkipped: false },
-        { label: 'Calls',     data: rows.map(r => n(r.calls)),     backgroundColor: greenGrad, borderRadius: 6, borderSkipped: false },
-        { label: 'Contacted', data: rows.map(r => n(r.contacted)), backgroundColor: pinkGrad,  borderRadius: 6, borderSkipped: false },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'top', align: 'end', labels: { color: '#7a83a8', font: { size: 11, weight: '600' }, boxWidth: 10, padding: 16, usePointStyle: true, pointStyle: 'circle' } },
-        tooltip: { backgroundColor: '#1c2134', titleColor: '#e8eaf4', bodyColor: '#a8b0d0', borderColor: '#272d44', borderWidth: 1, cornerRadius: 10, padding: 12, displayColors: true, boxPadding: 4 },
-      },
-      scales: {
-        x: { ticks: { color: '#7a83a8', font: { size: 10 } }, grid: { color: 'rgba(39,45,68,0.4)', drawBorder: false } },
-        y: { ticks: { color: '#7a83a8', font: { size: 10 } }, grid: { color: 'rgba(39,45,68,0.4)', drawBorder: false }, beginAtZero: true },
-      },
-    },
-  });
-}
-
-function renderPieChart() {
-  if (pieChart) pieChart.destroy();
-  const totalLeads     = state.daily.reduce((s, d) => s + n(d.leads), 0);
-  const totalContacted = state.daily.reduce((s, d) => s + n(d.contacted), 0);
-  const totalCloses    = state.daily.reduce((s, d) => s + n(d.closes_total), 0);
-  const notContacted = Math.max(0, totalLeads - totalContacted);
-  const contactedNotClosed = Math.max(0, totalContacted - totalCloses);
-
-  pieChart = new Chart(document.getElementById('pieChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Closed', 'Contacted (not closed)', 'Not Contacted'],
-      datasets: [{
-        data: [totalCloses, contactedNotClosed, notContacted],
-        backgroundColor: ['rgba(52,211,153,0.95)', 'rgba(107,158,255,0.85)', 'rgba(74,82,120,0.45)'],
-        borderColor: '#141826', borderWidth: 4, hoverOffset: 8,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '66%',
-      plugins: {
-        legend: { position: 'bottom', labels: { color: '#7a83a8', font: { size: 11, weight: '600' }, padding: 14, boxWidth: 10, usePointStyle: true, pointStyle: 'circle' } },
-        tooltip: { backgroundColor: '#1c2134', titleColor: '#e8eaf4', bodyColor: '#a8b0d0', borderColor: '#272d44', borderWidth: 1, cornerRadius: 10, padding: 12 },
-      },
-    },
-  });
-}
-
-const LEAD_COLS = [
-  { key: 'first_name', label: 'Lead', render: (r) => {
-      const name = r.first_name || (r.email ? r.email.split('@')[0] : '—');
-      const ini = initials(r.first_name, r.email);
-      const bg = avatarColor(r.email || r.first_name);
-      return '<div class="row-name">' +
-        '<div class="row-avatar" style="background:' + bg + '">' + ini + '</div>' +
-        '<span class="row-name-text">' + (name || '—') + '</span></div>';
-    }, sortKey: 'first_name' },
-  { key: 'lead_date', label: 'Date', render: (r) => fmtTs(r.lead_ts || r.lead_date), sortKey: 'lead_date', num: true },
-  { key: 'email', label: 'Email', render: (r) => r.email || '—' },
-  { key: 'phone', label: 'Phone', render: (r) => r.phone || '—' },
-  { key: 'rep', label: 'Rep', render: (r) => r.rep || '—' },
-  { key: 'type', label: 'Type', render: (r) => r.type || '—' },
-  { key: 'call_count', label: 'Calls', render: (r) => '<span class="badge ' + (n(r.call_count) > 0 ? 'badge-blue' : 'badge-dim') + '">' + n(r.call_count) + '</span>', num: true },
-  { key: 'first_call_ts', label: 'First Call', render: (r) => fmtTs(r.first_call_ts), num: true },
-  { key: 'total_duration', label: 'Talk Time', render: (r) => fmtDuration(r.total_duration), num: true },
-  { key: 'contacted', label: 'Status', render: (r) => {
-      if (r.closed) return '<span class="badge badge-gold">★ Closed</span>';
-      if (r.contacted) return '<span class="badge badge-green">✓ Contacted</span>';
-      if (n(r.call_count) > 0) return '<span class="badge badge-blue">Attempted</span>';
-      return '<span class="badge badge-dim">No call</span>';
-    } },
-  { key: 'actions', label: '', render: (r) => {
-      const links = [];
-      if (r.phone) links.push('<a class="row-action" href="tel:' + r.phone + '" title="Call">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></a>');
-      if (r.email) links.push('<a class="row-action" href="mailto:' + r.email + '" title="Email">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>');
-      return '<div class="row-actions">' + links.join('') + '</div>';
-    } },
-];
-function currentCols() { return LEAD_COLS; }
-function currentSource() { return state.leads; }
-
-function renderTable() {
-  const cols = currentCols();
-  const rows = currentSource();
-  document.getElementById('tableTitle').innerHTML =
-    'All Leads <span class="count" id="tableCount">0</span>';
-
-  document.getElementById('thead').innerHTML = cols.map((c, i) =>
-    '<th data-col="' + i + '">' + (c.label || '') + '<span class="arrow"></span></th>'
-  ).join('');
-  document.querySelectorAll('#thead th').forEach((th) => {
-    if (!th.textContent.trim()) return;
-    th.addEventListener('click', () => sortBy(parseInt(th.dataset.col)));
-  });
-
-  currentTableRows = rows;
-  applySearchAndRender();
-}
-
-function applySearchAndRender() {
-  const q = document.getElementById('search').value.toLowerCase().trim();
-  let rows = currentTableRows;
-  if (q) {
-    rows = rows.filter(r => Object.values(r).some(v => String(v == null ? '' : v).toLowerCase().includes(q)));
-  }
-  renderTableBody(rows);
-}
-
-function renderTableBody(rows) {
-  const cols = currentCols();
-  document.getElementById('tbody').innerHTML = rows.map(r =>
-    '<tr>' + cols.map(c => {
-      const val = c.render(r);
-      let cls = '';
-      if (c.num) {
-        const num = n(r[c.key]);
-        cls = num > 0 ? 'pos' : 'zero';
-      }
-      return '<td class="' + cls + '">' + (val == null ? '' : val) + '</td>';
-    }).join('') + '</tr>'
-  ).join('');
-  const cnt = document.getElementById('tableCount');
-  if (cnt) cnt.textContent = rows.length;
-}
-
-function sortBy(colIdx) {
-  if (sortCol === colIdx) sortAsc = !sortAsc;
-  else { sortCol = colIdx; sortAsc = true; }
-
-  const cols = currentCols();
-  const col = cols[colIdx];
-  const key = col.sortKey || col.key;
-  const isNumOrDate = !!col.num || ['lead_date','stat_date','first_call_ts','last_call_ts','lead_ts'].includes(key);
-
-  const sorted = [...currentTableRows].sort((a, b) => {
-    const av = a[key], bv = b[key];
-    if (isNumOrDate) {
-      const an = (key.indexOf('date') >= 0 || key.indexOf('ts') >= 0)
-        ? (av ? new Date(av).getTime() : 0) : n(av);
-      const bn = (key.indexOf('date') >= 0 || key.indexOf('ts') >= 0)
-        ? (bv ? new Date(bv).getTime() : 0) : n(bv);
-      return sortAsc ? an - bn : bn - an;
-    }
-    return sortAsc ? String(av == null ? '' : av).localeCompare(String(bv == null ? '' : bv)) : String(bv == null ? '' : bv).localeCompare(String(av == null ? '' : av));
-  });
-
-  document.querySelectorAll('#thead th .arrow').forEach((el, i) => {
-    el.textContent = i === colIdx ? (sortAsc ? ' ▲' : ' ▼') : '';
-  });
-
-  currentTableRows = sorted;
-  applySearchAndRender();
-}
-
-let boundAfterAuth = false;
-function bindAfterAuth() {
-  boundAfterAuth = true;
-  document.getElementById('applyFilter').addEventListener('click', loadData);
-  document.getElementById('refetchBtn').addEventListener('click', loadData);
-  document.getElementById('clearFilter').addEventListener('click', () => {
-    document.getElementById('dateFrom').value = '';
-    document.getElementById('dateTo').value = '';
-    document.getElementById('search').value = '';
-    loadData();
-  });
-  document.getElementById('search').addEventListener('input', applySearchAndRender);
-  ['dateFrom','dateTo'].forEach(id => {
-    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') loadData(); });
-  });
-  document.getElementById('signoutBtn').addEventListener('click', async () => {
-    await supa.auth.signOut();
-  });
-  document.querySelectorAll('.funnel-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const f = btn.dataset.funnel;
-      if (f === activeFunnel) return;
-      activeFunnel = f;
-      document.querySelectorAll('.funnel-tab').forEach(b => b.classList.toggle('active', b === btn));
-      loadData();
-    });
-  });
-  document.getElementById('repSelect').addEventListener('change', () => {
-    activeRep = document.getElementById('repSelect').value;
-    loadData();
-  });
-  loadRepList();
-}
-
+// ── Boot ──────────────────────────────────────────────────
+setState('loading');
 initAuth();
 </script>
 </body>
