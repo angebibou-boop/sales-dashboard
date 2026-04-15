@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Home</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0d0f1a; --surface: #131627; --surface2: #1a1e30; --surface3: #1e2336;
+    --border: #252840; --border-light: #2e3352;
+    --text: #e8eaf4; --text-muted: #8890b0; --text-dim: #4a5070;
+    --blue: #6b9eff; --blue-bg: rgba(107,158,255,0.12);
+    --green: #34d399; --green-bg: rgba(52,211,153,0.12);
+    --red: #f87171; --gold: #fbbf24; --gold-bg: rgba(251,191,36,0.12);
+    --purple: #a78bfa; --purple-bg: rgba(167,139,250,0.12);
+    --pink: #f472b6; --pink-bg: rgba(244,114,182,0.12);
+    --cyan: #22d3ee; --cyan-bg: rgba(34,211,238,0.12);
+    --bg-grad: linear-gradient(160deg,#0d0f1a 0%,#101220 50%,#0d0f1a 100%);
+  }
+  body.light {
+    --bg: #f4f6fb; --surface: #ffffff; --surface2: #f0f2f8; --surface3: #e8ebf5;
+    --border: #dde2f0; --border-light: #c8cedf;
+    --text: #1a1d2e; --text-muted: #525a7a; --text-dim: #9199b8;
+    --blue-bg: rgba(107,158,255,0.15); --green-bg: rgba(52,211,153,0.15);
+    --gold-bg: rgba(251,191,36,0.15); --purple-bg: rgba(167,139,250,0.15);
+    --pink-bg: rgba(244,114,182,0.15); --cyan-bg: rgba(34,211,238,0.15);
+    --bg-grad: linear-gradient(160deg,#f4f6fb 0%,#eef0fa 50%,#f4f6fb 100%);
+  }
+  body.light .header { background: rgba(255,255,255,0.95); }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;
+    background:var(--bg-grad); background-attachment:fixed;
+    color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+
+  /* Auth */
+  .full-center { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .auth-card { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:36px 32px; width:100%; max-width:400px; box-shadow:0 24px 64px rgba(0,0,0,0.4); }
+  .auth-card h1 { font-size:1.4rem; font-weight:700; letter-spacing:-0.02em; margin-bottom:6px; }
+  .auth-card .sub { color:var(--text-muted); font-size:0.85rem; margin-bottom:24px; }
+  .auth-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:12px 14px; color:var(--text); font-size:0.92rem; outline:none; transition:border-color 0.15s,box-shadow 0.15s; }
+  .auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .auth-btn { width:100%; margin-top:12px; background:linear-gradient(135deg,var(--blue) 0%,#4a7de0 100%); border:none; border-radius:10px; padding:12px 16px; color:#fff; font-size:0.92rem; font-weight:600; cursor:pointer; transition:transform 0.1s; }
+  .auth-btn:hover { transform:translateY(-1px); }
+  .auth-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .auth-error { color:var(--red); font-size:0.78rem; margin-top:8px; min-height:1em; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* State */
+  body[data-state="loading"] #app, body[data-state="loading"] #login,
+  body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot,
+  body[data-state="login"] #app, body[data-state="login"] #boot { display:none; }
+  body[data-state="loading"] #boot { display:flex; }
+  body[data-state="login"] #login { display:flex; }
+  body[data-state="dashboard"] #app { display:block; }
+
+  /* Header */
+  .header {
+    display:flex; align-items:center; gap:12px; padding:14px 32px;
+    background:rgba(19,22,39,0.92); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100;
+  }
+  .header-logo {
+    width:36px; height:36px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .header-title { font-size:1.05rem; font-weight:700; letter-spacing:-0.02em; }
+  .header-spacer { flex:1; }
+  .btn { border:none; border-radius:9px; padding:8px 14px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px; }
+  .btn-ghost { background:var(--surface2); color:var(--text-muted); border:1px solid var(--border); }
+  .btn-ghost:hover { color:var(--text); border-color:var(--border-light); }
+  .user-chip { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:5px 14px 5px 5px; font-size:0.78rem; color:var(--text-muted); }
+  .user-avatar { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%); color:#fff; font-size:0.7rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+
+  /* Main */
+  .main { padding:48px 32px 80px; max-width:1100px; margin:0 auto; }
+  .welcome { margin-bottom:40px; }
+  .welcome h2 { font-size:1.8rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:6px; }
+  .welcome p { color:var(--text-muted); font-size:0.92rem; }
+
+  /* Board cards */
+  .boards-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:48px; }
+  @media(max-width:900px) { .boards-grid { grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:580px) { .boards-grid { grid-template-columns:1fr; } }
+
+  .board-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    padding:24px; text-decoration:none; color:inherit; display:block;
+    transition:all 0.18s; position:relative; overflow:hidden;
+  }
+  .board-card::after { content:''; position:absolute; inset:0; opacity:0; background:radial-gradient(circle at top right,var(--card-color,var(--blue)),transparent 70%); transition:opacity 0.2s; pointer-events:none; }
+  .board-card:hover { border-color:var(--card-color,var(--blue)); transform:translateY(-3px); box-shadow:0 16px 40px rgba(0,0,0,0.3); }
+  .board-card:hover::after { opacity:0.08; }
+  .board-card.locked { opacity:0.45; cursor:not-allowed; pointer-events:none; }
+
+  .card-icon { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+  .card-title { font-size:1rem; font-weight:700; margin-bottom:6px; }
+  .card-desc { font-size:0.78rem; color:var(--text-muted); line-height:1.5; margin-bottom:16px; }
+  .card-tags { display:flex; flex-wrap:wrap; gap:6px; }
+  .card-tag { font-size:0.68rem; font-weight:600; padding:3px 8px; border-radius:6px; border:1px solid transparent; }
+  .card-arrow { position:absolute; top:20px; right:20px; color:var(--text-dim); transition:all 0.15s; }
+  .board-card:hover .card-arrow { color:var(--card-color,var(--blue)); transform:translateX(3px); }
+
+  /* Admin section */
+  .section-head { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .section-head::before { content:''; width:10px; height:1px; background:var(--text-dim); }
+  .admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:700px) { .admin-grid { grid-template-columns:1fr; } }
+  .admin-panel { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; }
+  .admin-panel h3 { font-size:0.88rem; font-weight:700; margin-bottom:4px; }
+  .admin-panel .sub { font-size:0.78rem; color:var(--text-muted); margin-bottom:18px; }
+
+  .admin-user-row { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; flex-wrap:wrap; }
+  .admin-user-email { flex:1; min-width:140px; font-size:0.82rem; color:var(--text); font-weight:600; }
+  .admin-user-perms { display:flex; gap:8px; flex-wrap:wrap; }
+  .admin-perm-label { display:flex; align-items:center; gap:5px; font-size:0.73rem; color:var(--text-muted); cursor:pointer; user-select:none; background:var(--surface3); border:1px solid var(--border); border-radius:6px; padding:3px 8px; }
+  .admin-perm-label input { accent-color:var(--blue); cursor:pointer; }
+  .admin-perm-label.admin-label { border-color:rgba(167,139,250,0.4); color:var(--purple); }
+  .admin-perm-label.admin-label input { accent-color:var(--purple); }
+  .admin-user-msg { font-size:0.73rem; min-width:40px; }
+</style>
+</head>
+<body data-state="loading">
+
+<div id="boot" class="full-center">
+  <div style="text-align:center;">
+    <div class="spinner" style="margin:0 auto 16px;"></div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">Loading…</div>
+  </div>
+</div>
+
+<div id="login" class="full-center">
+  <form class="auth-card" id="loginForm">
+    <h1>Welcome Back</h1>
+    <p class="sub">Sign in to access your dashboards</p>
+    <input class="auth-input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+    <input class="auth-input" type="password" id="password" placeholder="Password" required autocomplete="current-password" style="margin-top:10px;">
+    <button type="submit" class="auth-btn" id="sendBtn">Sign In</button>
+    <div class="auth-error" id="loginError"></div>
+  </form>
+</div>
+
+<div id="app">
+  <header class="header">
+    <div class="header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </div>
+    <div class="header-title">Dashboards</div>
+    <div class="header-spacer"></div>
+    <button class="btn btn-ghost" id="themeBtn" title="Toggle light/dark mode" style="font-size:1rem; padding:7px 11px;"></button>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span id="userEmail"></span>
+    </div>
+    <button class="btn btn-ghost" id="signOutBtn">Sign Out</button>
+  </header>
+
+  <div class="main">
+    <div class="welcome">
+      <h2>Good <span id="greeting"></span>, <span id="firstName"></span></h2>
+      <p>Choose a dashboard to open, or manage your team below.</p>
+    </div>
+
+    <div class="section-head">Boards</div>
+    <div class="boards-grid" id="boardsGrid"></div>
+
+    <!-- Admin section -->
+    <div id="adminSection" style="display:none;">
+      <div class="section-head">Admin</div>
+      <div class="admin-grid">
+
+        <!-- Invite -->
+        <div class="admin-panel">
+          <h3>Invite User</h3>
+          <p class="sub">Send an invitation email to grant access.</p>
+          <input class="auth-input" type="email" id="inviteEmail" placeholder="their@email.com" autocomplete="off">
+          <div style="margin-top:10px; display:flex; gap:8px;">
+            <button class="auth-btn" id="sendInviteBtn" style="margin:0; flex:1;">Send Invite</button>
+          </div>
+          <div style="color:var(--red); font-size:0.78rem; margin-top:8px;" id="inviteError"></div>
+          <div style="display:none; color:var(--green); font-size:0.82rem; margin-top:8px;" id="inviteSuccess"></div>
+        </div>
+
+        <!-- Manage users -->
+        <div class="admin-panel">
+          <h3>Manage Users</h3>
+          <p class="sub">Set permissions for each team member.</p>
+          <div id="adminUserList"><div style="color:var(--text-muted);font-size:0.85rem;">Loading…</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = "https://pojqljrhhtnigyrtzdzz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
+const INVITE_BASE       = SUPABASE_URL + "/functions/v1/invite";
+const ADMIN_API_BASE    = SUPABASE_URL + "/functions/v1/admin-api";
+
+const AVAILABLE_PERMISSIONS = ['sales', 'marketing'];
+
+const BOARDS = [
+  {
+    id: 'sales', href: 'index.html', title: 'Sales Dashboard', permission: 'sales',
+    color: '#6b9eff', iconBg: 'rgba(107,158,255,0.2)',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b9eff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>',
+    desc: 'Leads, calls, contact rates, closes and gross income by day.',
+    tags: [{ label: 'Leads', bg: 'var(--blue-bg)', color: 'var(--blue)' }, { label: 'Closes', bg: 'var(--green-bg)', color: 'var(--green)' }],
+  },
+  {
+    id: 'meta', href: 'meta-ads.html', title: 'Meta Ads', permission: 'marketing',
+    color: '#f472b6', iconBg: 'rgba(244,114,182,0.2)',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>',
+    desc: 'Ad spend, impressions, clicks, CTR, CPM and CPC by campaign.',
+    tags: [{ label: 'Spend', bg: 'var(--pink-bg)', color: 'var(--pink)' }, { label: 'Campaigns', bg: 'var(--purple-bg)', color: 'var(--purple)' }],
+  },
+  {
+    id: 'performance', href: 'performance.html', title: 'Funnel Performance', permission: 'both',
+    color: '#34d399', iconBg: 'rgba(52,211,153,0.2)',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    desc: 'Ads + sales combined — cost per lead, cost per close, ROAS per funnel.',
+    tags: [{ label: 'ROAS', bg: 'var(--green-bg)', color: 'var(--green)' }, { label: 'Funnels', bg: 'var(--gold-bg)', color: 'var(--gold)' }],
+  },
+];
+
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
+});
+
+function setState(s) { document.body.dataset.state = s; }
+let currentSession = null;
+
+// ── Theme ─────────────────────────────────────────────────
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') document.body.classList.add('light');
+function updateThemeBtn() {
+  const isLight = document.body.classList.contains('light');
+  document.getElementById('themeBtn').textContent = isLight ? '🌙' : '☀️';
+}
+updateThemeBtn();
+document.getElementById('themeBtn').addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+  updateThemeBtn();
+});
+
+// ── Auth ──────────────────────────────────────────────────
+async function initAuth() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) { onAuthed(session); return; }
+  setState('login');
+  supa.auth.onAuthStateChange((_e, sess) => { if (sess) onAuthed(sess); else setState('login'); });
+}
+
+async function onAuthed(session) {
+  currentSession = session;
+  const email = session.user.email || '';
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatar').textContent = (email[0] || 'U').toUpperCase();
+
+  // Greeting
+  const hr = new Date().getHours();
+  document.getElementById('greeting').textContent = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
+  const name = email.split('@')[0].split('.')[0];
+  document.getElementById('firstName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+
+  const isAdmin = session.user.app_metadata?.is_admin ?? false;
+  const perms   = session.user.app_metadata?.permissions ?? [];
+
+  // Render board cards
+  renderBoards(isAdmin, perms);
+
+  if (isAdmin) {
+    document.getElementById('adminSection').style.display = 'block';
+    loadAdminUsers();
+  }
+
+  setState('dashboard');
+}
+
+function renderBoards(isAdmin, perms) {
+  const grid = document.getElementById('boardsGrid');
+  grid.innerHTML = BOARDS.map(b => {
+    const hasAccess = isAdmin ||
+      b.permission === 'both' ? (isAdmin || (perms.includes('sales') && perms.includes('marketing'))) :
+      perms.includes(b.permission);
+    const locked = !hasAccess;
+    return `<a href="${b.href}" class="board-card${locked ? ' locked' : ''}" style="--card-color:${b.color};">
+      <div class="card-arrow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+      </div>
+      <div class="card-icon" style="background:${b.iconBg};">${b.icon}</div>
+      <div class="card-title">${b.title}${locked ? ' 🔒' : ''}</div>
+      <div class="card-desc">${b.desc}</div>
+      <div class="card-tags">${b.tags.map(t => `<span class="card-tag" style="background:${t.bg};color:${t.color};border-color:${t.color}22;">${t.label}</span>`).join('')}</div>
+    </a>`;
+  }).join('');
+}
+
+// ── Admin users ───────────────────────────────────────────
+async function loadAdminUsers() {
+  const list = document.getElementById('adminUserList');
+  try {
+    const r = await fetch(ADMIN_API_BASE + '?api=users', {
+      headers: { Authorization: 'Bearer ' + currentSession.access_token }
+    });
+    const users = await r.json();
+    if (!r.ok) throw new Error(users.error || 'Failed');
+    list.innerHTML = users.map(u => `
+      <div class="admin-user-row" data-id="${u.id}">
+        <div class="admin-user-email">${u.email || u.id}</div>
+        <div class="admin-user-perms">
+          ${AVAILABLE_PERMISSIONS.map(p => `
+            <label class="admin-perm-label">
+              <input type="checkbox" class="perm-check" data-perm="${p}" ${(u.permissions||[]).includes(p)?'checked':''}>
+              ${p}
+            </label>`).join('')}
+          <label class="admin-perm-label admin-label">
+            <input type="checkbox" class="admin-check" ${u.is_admin?'checked':''}>
+            admin
+          </label>
+        </div>
+        <button class="btn btn-ghost admin-save-btn" style="font-size:0.72rem;padding:5px 10px;" data-id="${u.id}">Save</button>
+        <div class="admin-user-msg"></div>
+      </div>`).join('');
+
+    list.querySelectorAll('.admin-save-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const row = btn.closest('.admin-user-row');
+        const userId = btn.dataset.id;
+        const permissions = [...row.querySelectorAll('.perm-check')].filter(c=>c.checked).map(c=>c.dataset.perm);
+        const is_admin = row.querySelector('.admin-check').checked;
+        const msg = row.querySelector('.admin-user-msg');
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+          const r = await fetch(ADMIN_API_BASE + '?api=set-permissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + currentSession.access_token },
+            body: JSON.stringify({ userId, permissions, is_admin }),
+          });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.error || 'Failed');
+          msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved';
+        } catch(err) {
+          msg.style.color = 'var(--red)'; msg.textContent = err.message;
+        } finally {
+          btn.disabled = false; btn.textContent = 'Save';
+          setTimeout(() => { msg.textContent = ''; }, 3000);
+        }
+      });
+    });
+  } catch(err) {
+    list.innerHTML = `<div style="color:var(--red);font-size:0.85rem;">${err.message}</div>`;
+  }
+}
+
+// ── Invite ────────────────────────────────────────────────
+document.getElementById('sendInviteBtn').addEventListener('click', async () => {
+  const email = document.getElementById('inviteEmail').value.trim();
+  const errEl = document.getElementById('inviteError');
+  const successEl = document.getElementById('inviteSuccess');
+  const btn = document.getElementById('sendInviteBtn');
+  errEl.textContent = ''; successEl.style.display = 'none';
+  if (!email || !email.includes('@')) { errEl.textContent = 'Enter a valid email'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(INVITE_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + currentSession.access_token },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed');
+    successEl.textContent = '✓ Invitation sent to ' + email;
+    successEl.style.display = 'block';
+    document.getElementById('inviteEmail').value = '';
+  } catch(err) {
+    errEl.textContent = err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Invite';
+  }
+});
+
+// ── Login ─────────────────────────────────────────────────
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('loginError');
+  const btn = document.getElementById('sendBtn');
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    onAuthed(data.session);
+  } catch(err) {
+    errEl.textContent = err.message || 'Invalid credentials';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await supa.auth.signOut(); setState('login');
+});
+
+setState('loading');
+initAuth();
+</script>
+</body>
+</html>
