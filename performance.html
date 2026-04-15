@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funnel Performance</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  :root {
+    --bg: #0d0f1a;
+    --surface: #131627;
+    --surface2: #1a1e30;
+    --surface3: #1e2336;
+    --border: #252840;
+    --border-light: #2e3352;
+    --text: #e8eaf4;
+    --text-muted: #8890b0;
+    --text-dim: #4a5070;
+    --blue: #6b9eff;
+    --blue-bg: rgba(107,158,255,0.12);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.12);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.12);
+    --gold: #fbbf24;
+    --gold-bg: rgba(251,191,36,0.12);
+    --purple: #a78bfa;
+    --purple-bg: rgba(167,139,250,0.12);
+    --cyan: #22d3ee;
+    --cyan-bg: rgba(34,211,238,0.12);
+    --pink: #f472b6;
+    --pink-bg: rgba(244,114,182,0.12);
+    --optin-color: #6b9eff;
+    --nooptin-color: #f472b6;
+    --bg-grad: linear-gradient(160deg, #0d0f1a 0%, #101220 50%, #0d0f1a 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-grad); background-attachment: fixed;
+    color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Auth ─────────────────────────────────────────────── */
+  .full-center { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .auth-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:36px 32px; width:100%; max-width:400px; box-shadow:0 24px 64px rgba(0,0,0,0.4);
+  }
+  .auth-card h1 { font-size:1.4rem; font-weight:700; letter-spacing:-0.02em; margin-bottom:6px; }
+  .auth-card .sub { color:var(--text-muted); font-size:0.85rem; margin-bottom:24px; }
+  .auth-input {
+    width:100%; background:var(--bg); border:1px solid var(--border); border-radius:10px;
+    padding:12px 14px; color:var(--text); font-size:0.92rem; outline:none;
+    transition:border-color 0.15s, box-shadow 0.15s;
+  }
+  .auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .auth-btn {
+    width:100%; margin-top:12px;
+    background:linear-gradient(135deg, var(--blue) 0%, #4a7de0 100%);
+    border:none; border-radius:10px; padding:12px 16px; color:#fff;
+    font-size:0.92rem; font-weight:600; cursor:pointer; transition:transform 0.1s;
+  }
+  .auth-btn:hover { transform:translateY(-1px); }
+  .auth-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .auth-error { color:var(--red); font-size:0.78rem; margin-top:8px; min-height:1em; }
+  .spinner {
+    width:40px; height:40px; border:3px solid var(--border);
+    border-top-color:var(--blue); border-radius:50%; animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── State visibility ─────────────────────────────────── */
+  body[data-state="loading"] #app, body[data-state="loading"] #login,
+  body[data-state="dashboard"] #login, body[data-state="dashboard"] #boot,
+  body[data-state="login"] #app, body[data-state="login"] #boot { display:none; }
+  body[data-state="loading"] #boot { display:flex; }
+  body[data-state="login"] #login { display:flex; }
+  body[data-state="dashboard"] #app { display:block; }
+
+  /* ── Header ───────────────────────────────────────────── */
+  .header {
+    display:flex; align-items:center; gap:12px; padding:14px 28px;
+    background:rgba(19,22,39,0.92); backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; flex-wrap:wrap;
+  }
+  .header-logo {
+    width:36px; height:36px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg, var(--blue) 0%, var(--pink) 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .header-title { font-size:1.05rem; font-weight:700; letter-spacing:-0.02em; }
+  .header-sub { color:var(--text-muted); font-size:0.74rem; margin-top:1px; }
+  .header-spacer { flex:1; }
+  .filter-group {
+    display:flex; align-items:center; gap:8px; background:var(--surface2);
+    border:1px solid var(--border); border-radius:12px; padding:6px 10px;
+  }
+  .filter-group label { font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; }
+  .filter-group input[type="date"] {
+    background:var(--bg); border:1px solid var(--border); border-radius:7px;
+    padding:6px 10px; color:var(--text); font-size:0.78rem; outline:none;
+    color-scheme:dark; width:138px;
+  }
+  .filter-sep { color:var(--text-dim); }
+  .btn {
+    border:none; border-radius:9px; padding:8px 14px; font-size:0.78rem; font-weight:600;
+    cursor:pointer; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-ghost { background:var(--surface2); color:var(--text-muted); border:1px solid var(--border); }
+  .btn-ghost:hover { color:var(--text); border-color:var(--border-light); }
+  .btn-refresh { background:var(--surface2); color:var(--text-muted); border:1px solid var(--border); }
+  .btn-refresh.spinning .refresh-icon { animation:spin 0.8s linear infinite; }
+  .user-chip {
+    display:flex; align-items:center; gap:8px; background:var(--surface);
+    border:1px solid var(--border); border-radius:999px; padding:5px 14px 5px 5px;
+    font-size:0.78rem; color:var(--text-muted);
+  }
+  .user-avatar {
+    width:26px; height:26px; border-radius:50%;
+    background:linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+    color:#fff; font-size:0.7rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ── Main ─────────────────────────────────────────────── */
+  .main { padding:28px 32px 60px; max-width:1400px; margin:0 auto; }
+  .section-head {
+    font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--text-dim); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .section-head::before { content:''; width:10px; height:1px; background:var(--text-dim); }
+
+  /* ── Funnel columns ───────────────────────────────────── */
+  .funnels-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px;
+  }
+  @media (max-width:800px) { .funnels-grid { grid-template-columns:1fr; } }
+
+  .funnel-col {
+    background:var(--surface); border:1px solid var(--border); border-radius:18px;
+    overflow:hidden;
+  }
+  .funnel-header {
+    padding:18px 20px 14px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .funnel-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .funnel-name { font-size:0.92rem; font-weight:700; }
+  .funnel-tag { font-size:0.68rem; color:var(--text-dim); margin-top:2px; }
+  .funnel-metrics { padding:16px 20px; display:flex; flex-direction:column; gap:0; }
+
+  .metric-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0; border-bottom:1px solid rgba(37,40,64,0.5);
+  }
+  .metric-row:last-child { border-bottom:none; }
+  .metric-label { font-size:0.78rem; color:var(--text-muted); }
+  .metric-value { font-size:0.95rem; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums; }
+  .metric-value.green { color:var(--green); }
+  .metric-value.blue  { color:var(--blue); }
+  .metric-value.gold  { color:var(--gold); }
+  .metric-value.pink  { color:var(--pink); }
+  .metric-divider {
+    padding:8px 0 4px; font-size:0.65rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.08em; color:var(--text-dim); border-bottom:1px solid var(--border);
+    margin-bottom:4px;
+  }
+
+  /* ── Charts ───────────────────────────────────────────── */
+  .chart-card {
+    background:linear-gradient(180deg,var(--surface) 0%,var(--surface2) 100%);
+    border:1px solid var(--border); border-radius:16px; padding:22px 24px; margin-bottom:28px;
+  }
+  .chart-title { font-size:0.85rem; font-weight:700; color:var(--text); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .chart-legend { display:flex; gap:16px; margin-left:auto; }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); }
+  .legend-dot { width:8px; height:8px; border-radius:50%; }
+  .chart-wrap { height:260px; }
+
+  /* ── Summary table ────────────────────────────────────── */
+  .compare-table {
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; margin-bottom:28px;
+  }
+  .compare-table table { width:100%; border-collapse:collapse; font-size:0.83rem; }
+  .compare-table thead th {
+    background:var(--surface2); padding:13px 20px; text-align:left;
+    font-size:0.7rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--text-muted); border-bottom:1px solid var(--border);
+  }
+  .compare-table thead th:not(:first-child) { text-align:right; }
+  .compare-table tbody td { padding:13px 20px; border-bottom:1px solid rgba(37,40,64,0.4); }
+  .compare-table tbody td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
+  .compare-table tbody tr:last-child td { border-bottom:none; }
+  .compare-table tbody tr:hover { background:var(--surface2); }
+  .metric-name { color:var(--text-muted); }
+  .winner { color:var(--green); font-weight:700; }
+  .loser  { color:var(--text-muted); }
+  .empty  { text-align:center; padding:40px; color:var(--text-muted); font-size:0.9rem; }
+</style>
+</head>
+<body data-state="loading">
+
+<div id="boot" class="full-center">
+  <div style="text-align:center;">
+    <div class="spinner" style="margin:0 auto 16px;"></div>
+    <div style="color:var(--text-muted);font-size:0.85rem;">Loading…</div>
+  </div>
+</div>
+
+<div id="login" class="full-center">
+  <form class="auth-card" id="loginForm">
+    <h1>Funnel Performance</h1>
+    <p class="sub">Sign in to view combined funnel analytics</p>
+    <input class="auth-input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+    <input class="auth-input" type="password" id="password" placeholder="Password" required autocomplete="current-password" style="margin-top:10px;">
+    <button type="submit" class="auth-btn" id="sendBtn">Sign In</button>
+    <div class="auth-error" id="loginError"></div>
+  </form>
+</div>
+
+<div id="app">
+  <header class="header">
+    <div class="header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div>
+      <div class="header-title">Funnel Performance</div>
+      <div class="header-sub">Ads spend + sales results combined</div>
+    </div>
+    <div class="filter-group">
+      <label>From</label>
+      <input type="date" id="dateFrom">
+      <span class="filter-sep">→</span>
+      <label>To</label>
+      <input type="date" id="dateTo">
+    </div>
+    <button class="btn btn-refresh" id="refetchBtn">
+      <svg class="refresh-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+    <div class="header-spacer"></div>
+    <div style="position:relative;" id="navDropdown">
+      <button class="btn btn-ghost" id="navDropBtn" style="gap:6px;">
+        Dashboards
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="navDropMenu" style="display:none; position:absolute; top:calc(100% + 6px); right:0; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:6px; min-width:190px; z-index:200; box-shadow:0 12px 32px rgba(0,0,0,0.4);">
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.12s;" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='';this.style.color='var(--text-muted)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Sales Dashboard
+        </a>
+        <a href="meta-ads.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--text-muted);text-decoration:none;transition:all 0.12s;" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='';this.style.color='var(--text-muted)'">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Meta Ads
+        </a>
+        <a href="performance.html" style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;font-size:0.8rem;font-weight:600;color:var(--blue);background:var(--blue-bg);text-decoration:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Funnel Performance
+        </a>
+      </div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <span id="userEmail"></span>
+    </div>
+    <button class="btn btn-ghost" id="signOutBtn">Sign Out</button>
+  </header>
+
+  <div class="main">
+
+    <!-- Funnel side-by-side cards -->
+    <div class="section-head">Funnel Comparison</div>
+    <div class="funnels-grid">
+      <!-- Opt-In -->
+      <div class="funnel-col">
+        <div class="funnel-header">
+          <div class="funnel-dot" style="background:var(--optin-color);"></div>
+          <div>
+            <div class="funnel-name">VSL Opt-In</div>
+            <div class="funnel-tag">Artistic funnel · 2 campaigns</div>
+          </div>
+        </div>
+        <div class="funnel-metrics" id="optinMetrics">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+      <!-- No Opt-In -->
+      <div class="funnel-col">
+        <div class="funnel-header">
+          <div class="funnel-dot" style="background:var(--nooptin-color);"></div>
+          <div>
+            <div class="funnel-name">VSL No Opt-In</div>
+            <div class="funnel-tag">Artisticv2 funnel · 1 campaign</div>
+          </div>
+        </div>
+        <div class="funnel-metrics" id="nooptinMetrics">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily spend chart -->
+    <div class="chart-card">
+      <div class="chart-title">
+        Daily Ad Spend
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--optin-color);"></div>Opt-In</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--nooptin-color);"></div>No Opt-In</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="spendChart"></canvas></div>
+    </div>
+
+    <!-- Daily leads chart -->
+    <div class="chart-card">
+      <div class="chart-title">
+        Daily Leads
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--optin-color);"></div>Opt-In</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--nooptin-color);"></div>No Opt-In</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="leadsChart"></canvas></div>
+    </div>
+
+    <!-- Head-to-head table -->
+    <div class="section-head">Head-to-Head</div>
+    <div class="compare-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th style="color:var(--optin-color);">VSL Opt-In</th>
+            <th style="color:var(--nooptin-color);">VSL No Opt-In</th>
+            <th>Winner</th>
+          </tr>
+        </thead>
+        <tbody id="compareTbody">
+          <tr><td colspan="4" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL     = "https://pojqljrhhtnigyrtzdzz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
+const SALES_BASE       = SUPABASE_URL + "/functions/v1/dashboard";
+const META_BASE        = SUPABASE_URL + "/functions/v1/meta-ads";
+
+// ── Campaign → funnel mapping ─────────────────────────────
+const OPTIN_CAMPAIGNS   = [
+  'CAPXEL VSL (Survey) V2 BA Mar27',
+  'CAPXEL VSL (Survey) V2 BA Mar18',
+];
+const NOOPTIN_CAMPAIGNS = [
+  'CAPXEL VSL (Survey) V2 BA Mar27 NO OPT-IN',
+];
+
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
+});
+
+function setState(s) { document.body.dataset.state = s; }
+let currentSession = null;
+let spendChart = null, leadsChart = null;
+
+// ── Auth ──────────────────────────────────────────────────
+async function initAuth() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) { onAuthed(session); return; }
+  setState('login');
+  supa.auth.onAuthStateChange((_e, sess) => {
+    if (sess) onAuthed(sess); else setState('login');
+  });
+}
+
+async function onAuthed(session) {
+  currentSession = session;
+  const email = session.user.email || '';
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatar').textContent = (email[0] || 'U').toUpperCase();
+  setState('dashboard');
+  setDefaultDates();
+  await loadAll();
+}
+
+function setDefaultDates() {
+  const to   = new Date();
+  const from = new Date(Date.now() - 30 * 86400000);
+  document.getElementById('dateTo').value   = to.toISOString().slice(0, 10);
+  document.getElementById('dateFrom').value = from.toISOString().slice(0, 10);
+}
+
+// ── Fetch helpers ─────────────────────────────────────────
+async function fetchSales(funnel) {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  const p = new URLSearchParams({ api: 'data', from, to, funnel });
+  const r = await fetch(SALES_BASE + '?' + p, {
+    cache: 'no-store',
+    headers: { Authorization: 'Bearer ' + currentSession.access_token }
+  });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function fetchMetaInsights() {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  const p = new URLSearchParams({ api: 'insights', from, to });
+  const r = await fetch(META_BASE + '?' + p, {
+    cache: 'no-store',
+    headers: { Authorization: 'Bearer ' + currentSession.access_token }
+  });
+  if (!r.ok) return [];
+  return r.json();
+}
+
+// ── Load all data ─────────────────────────────────────────
+async function loadAll() {
+  const btn = document.getElementById('refetchBtn');
+  btn.classList.add('spinning');
+
+  try {
+    const [optinSales, nooptinSales, metaInsights] = await Promise.all([
+      fetchSales('Artistic'),
+      fetchSales('Artisticv2'),
+      fetchMetaInsights(),
+    ]);
+
+    // Aggregate Meta by funnel
+    const optinMeta   = aggregateMeta(metaInsights, OPTIN_CAMPAIGNS);
+    const nooptinMeta = aggregateMeta(metaInsights, NOOPTIN_CAMPAIGNS);
+
+    renderFunnelCard('optinMetrics',   optinSales,   optinMeta,   '#6b9eff');
+    renderFunnelCard('nooptinMetrics', nooptinSales, nooptinMeta, '#f472b6');
+    renderCharts(optinSales, nooptinSales, optinMeta, nooptinMeta, metaInsights);
+    renderCompareTable(optinSales, nooptinSales, optinMeta, nooptinMeta);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('optinMetrics').innerHTML   = '<div class="empty" style="color:var(--red);">Error: ' + err.message + '</div>';
+    document.getElementById('nooptinMetrics').innerHTML = '<div class="empty" style="color:var(--red);">Error: ' + err.message + '</div>';
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+// ── Meta aggregation ──────────────────────────────────────
+function aggregateMeta(rows, campaignNames) {
+  const byDate = {};
+  let totalSpend = 0, totalImpressions = 0, totalClicks = 0;
+  rows.forEach(r => {
+    if (!campaignNames.some(n => r.campaign_name === n)) return;
+    const spend = Number(r.spend || 0);
+    const imp   = Number(r.impressions || 0);
+    const clk   = Number(r.clicks || 0);
+    totalSpend       += spend;
+    totalImpressions += imp;
+    totalClicks      += clk;
+    const d = r.date_start || '';
+    if (d) {
+      byDate[d] = byDate[d] || { spend: 0, clicks: 0 };
+      byDate[d].spend  += spend;
+      byDate[d].clicks += clk;
+    }
+  });
+  return { totalSpend, totalImpressions, totalClicks, byDate };
+}
+
+// ── Sales aggregation ─────────────────────────────────────
+function sumSales(salesData) {
+  if (!salesData || !salesData.daily) return { leads: 0, contacted: 0, closes: 0, grossIncome: 0, byDate: {} };
+  const byDate = {};
+  let leads = 0, contacted = 0, closes = 0, grossIncome = 0;
+  salesData.daily.forEach(d => {
+    leads       += Number(d.leads || 0);
+    contacted   += Number(d.contacted || 0);
+    closes      += Number(d.closes_total || 0);
+    grossIncome += Number(d.gross_income || 0);
+    byDate[d.stat_date] = { leads: Number(d.leads || 0), closes: Number(d.closes_total || 0) };
+  });
+  return { leads, contacted, closes, grossIncome, byDate };
+}
+
+// ── Formatters ────────────────────────────────────────────
+const $ = v => '$' + Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pct = (n, d) => d > 0 ? (100 * n / d).toFixed(1) + '%' : '—';
+const num = v => Number(v || 0).toLocaleString();
+const ratio = (n, d) => d > 0 ? (n / d).toFixed(2) + 'x' : '—';
+
+// ── Render funnel card ────────────────────────────────────
+function renderFunnelCard(elId, salesData, metaData, color) {
+  const s = sumSales(salesData);
+  const m = metaData;
+  const cpl   = s.leads   > 0 ? m.totalSpend / s.leads   : 0;
+  const cpc_  = s.closes  > 0 ? m.totalSpend / s.closes  : 0;
+  const roas  = m.totalSpend > 0 ? s.grossIncome / m.totalSpend : 0;
+  const ctr   = m.totalImpressions > 0 ? (m.totalClicks / m.totalImpressions) * 100 : 0;
+  const cpm   = m.totalImpressions > 0 ? (m.totalSpend / m.totalImpressions) * 1000 : 0;
+
+  const row = (label, value, cls = '') =>
+    `<div class="metric-row"><span class="metric-label">${label}</span><span class="metric-value ${cls}">${value}</span></div>`;
+  const div = label =>
+    `<div class="metric-divider">${label}</div>`;
+
+  document.getElementById(elId).innerHTML = `
+    ${div('Ad Performance')}
+    ${row('Ad Spend',     $(m.totalSpend),          'blue')}
+    ${row('Impressions',  num(m.totalImpressions),  '')}
+    ${row('Clicks',       num(m.totalClicks),        '')}
+    ${row('CTR',          ctr.toFixed(2) + '%',     '')}
+    ${row('CPM',          $(cpm),                   '')}
+    ${div('Lead Results')}
+    ${row('Leads',        num(s.leads),              '')}
+    ${row('Cost / Lead',  s.leads > 0 ? $(cpl) : '—', '')}
+    ${row('Contacted',    num(s.contacted),          '')}
+    ${row('Contact Rate', pct(s.contacted, s.leads), '')}
+    ${div('Sales Results')}
+    ${row('Closes',       num(s.closes),             'green')}
+    ${row('Close Rate',   pct(s.closes, s.leads),   'green')}
+    ${row('Cost / Close', s.closes > 0 ? $(cpc_) : '—', '')}
+    ${row('Gross Income', $(s.grossIncome),          'gold')}
+    ${row('ROAS',         ratio(s.grossIncome, m.totalSpend), m.totalSpend > 0 && roas >= 1 ? 'green' : 'pink')}
+  `;
+}
+
+// ── Charts ────────────────────────────────────────────────
+function renderCharts(optinSales, nooptinSales, optinMeta, nooptinMeta, allInsights) {
+  const allDates = [...new Set([
+    ...Object.keys(optinMeta.byDate),
+    ...Object.keys(nooptinMeta.byDate),
+  ])].sort();
+
+  const labels = allDates.map(d => { const [,m,day] = d.split('-'); return `${m}/${day}`; });
+
+  // Spend chart
+  if (spendChart) spendChart.destroy();
+  const sCtx = document.getElementById('spendChart').getContext('2d');
+  spendChart = new Chart(sCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Opt-In Spend', data: allDates.map(d => optinMeta.byDate[d]?.spend || 0), backgroundColor: 'rgba(107,158,255,0.7)', borderRadius: 4 },
+        { label: 'No Opt-In Spend', data: allDates.map(d => nooptinMeta.byDate[d]?.spend || 0), backgroundColor: 'rgba(244,114,182,0.7)', borderRadius: 4 },
+      ],
+    },
+    options: chartOptions('$'),
+  });
+
+  // Leads chart — from sales daily data
+  const optinByDate  = sumSales(optinSales).byDate;
+  const nooptinByDate = sumSales(nooptinSales).byDate;
+  const salesDates = [...new Set([
+    ...Object.keys(optinByDate),
+    ...Object.keys(nooptinByDate),
+  ])].sort();
+  const salesLabels = salesDates.map(d => { const [,m,day] = d.split('-'); return `${m}/${day}`; });
+
+  if (leadsChart) leadsChart.destroy();
+  const lCtx = document.getElementById('leadsChart').getContext('2d');
+  leadsChart = new Chart(lCtx, {
+    type: 'bar',
+    data: {
+      labels: salesLabels,
+      datasets: [
+        { label: 'Opt-In Leads', data: salesDates.map(d => optinByDate[d]?.leads || 0), backgroundColor: 'rgba(107,158,255,0.7)', borderRadius: 4 },
+        { label: 'No Opt-In Leads', data: salesDates.map(d => nooptinByDate[d]?.leads || 0), backgroundColor: 'rgba(244,114,182,0.7)', borderRadius: 4 },
+      ],
+    },
+    options: chartOptions(''),
+  });
+}
+
+function chartOptions(prefix) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { labels: { color: '#8890b0', font: { size: 11 } } },
+      tooltip: {
+        backgroundColor: '#1a1e30', borderColor: '#252840', borderWidth: 1,
+        titleColor: '#e8eaf4', bodyColor: '#8890b0', padding: 10,
+        callbacks: { label: ctx => ` ${prefix}${Number(ctx.parsed.y).toLocaleString('en-US', { minimumFractionDigits: prefix ? 2 : 0, maximumFractionDigits: prefix ? 2 : 0 })}` },
+      },
+    },
+    scales: {
+      x: { grid: { color: 'rgba(37,40,64,0.6)' }, ticks: { color: '#4a5070', font: { size: 10 } } },
+      y: { grid: { color: 'rgba(37,40,64,0.6)' }, ticks: { color: '#4a5070', font: { size: 10 }, callback: v => prefix + v.toLocaleString() } },
+    },
+  };
+}
+
+// ── Head-to-head table ────────────────────────────────────
+function renderCompareTable(optinSales, nooptinSales, optinMeta, nooptinMeta) {
+  const o  = sumSales(optinSales);
+  const n  = sumSales(nooptinSales);
+  const om = optinMeta;
+  const nm = nooptinMeta;
+
+  const oCPL   = o.leads  > 0 ? om.totalSpend / o.leads  : Infinity;
+  const nCPL   = n.leads  > 0 ? nm.totalSpend / n.leads  : Infinity;
+  const oCPC   = o.closes > 0 ? om.totalSpend / o.closes : Infinity;
+  const nCPC   = n.closes > 0 ? nm.totalSpend / n.closes : Infinity;
+  const oROAS  = om.totalSpend > 0 ? o.grossIncome / om.totalSpend : 0;
+  const nROAS  = nm.totalSpend > 0 ? n.grossIncome / nm.totalSpend : 0;
+  const oCTR   = om.totalImpressions > 0 ? om.totalClicks / om.totalImpressions : 0;
+  const nCTR   = nm.totalImpressions > 0 ? nm.totalClicks / nm.totalImpressions : 0;
+  const oCR    = o.leads > 0 ? o.closes / o.leads : 0;
+  const nCR    = n.leads > 0 ? n.closes / n.leads : 0;
+  const oConR  = o.leads > 0 ? o.contacted / o.leads : 0;
+  const nConR  = n.leads > 0 ? n.contacted / n.leads : 0;
+
+  const rows = [
+    { label: 'Ad Spend',      ov: $(om.totalSpend),   nv: $(nm.totalSpend),   winner: om.totalSpend <= nm.totalSpend ? 'optin' : 'nooptin', lowerBetter: true },
+    { label: 'Impressions',   ov: num(om.totalImpressions), nv: num(nm.totalImpressions), winner: om.totalImpressions >= nm.totalImpressions ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Clicks',        ov: num(om.totalClicks), nv: num(nm.totalClicks), winner: om.totalClicks >= nm.totalClicks ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'CTR',           ov: (oCTR*100).toFixed(2)+'%', nv: (nCTR*100).toFixed(2)+'%', winner: oCTR >= nCTR ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Leads',         ov: num(o.leads),  nv: num(n.leads),  winner: o.leads >= n.leads ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Cost / Lead',   ov: oCPL < Infinity ? $(oCPL) : '—', nv: nCPL < Infinity ? $(nCPL) : '—', winner: oCPL <= nCPL ? 'optin' : 'nooptin', lowerBetter: true },
+    { label: 'Contact Rate',  ov: (oConR*100).toFixed(1)+'%', nv: (nConR*100).toFixed(1)+'%', winner: oConR >= nConR ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Closes',        ov: num(o.closes), nv: num(n.closes), winner: o.closes >= n.closes ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Close Rate',    ov: (oCR*100).toFixed(1)+'%', nv: (nCR*100).toFixed(1)+'%', winner: oCR >= nCR ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'Cost / Close',  ov: oCPC < Infinity ? $(oCPC) : '—', nv: nCPC < Infinity ? $(nCPC) : '—', winner: oCPC <= nCPC ? 'optin' : 'nooptin', lowerBetter: true },
+    { label: 'Gross Income',  ov: $(o.grossIncome), nv: $(n.grossIncome), winner: o.grossIncome >= n.grossIncome ? 'optin' : 'nooptin', lowerBetter: false },
+    { label: 'ROAS',          ov: oROAS.toFixed(2)+'x', nv: nROAS.toFixed(2)+'x', winner: oROAS >= nROAS ? 'optin' : 'nooptin', lowerBetter: false },
+  ];
+
+  document.getElementById('compareTbody').innerHTML = rows.map(r => {
+    const oWin = r.winner === 'optin';
+    return `<tr>
+      <td class="metric-name">${r.label}</td>
+      <td class="${oWin ? 'winner' : 'loser'}">${r.ov}</td>
+      <td class="${!oWin ? 'winner' : 'loser'}">${r.nv}</td>
+      <td style="color:var(--text-muted); font-size:0.78rem;">${oWin ? '🔵 Opt-In' : '🩷 No Opt-In'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Events ────────────────────────────────────────────────
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('sendBtn');
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    onAuthed(data.session);
+  } catch (err) {
+    errEl.textContent = err.message || 'Invalid credentials';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+});
+
+document.getElementById('navDropBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const m = document.getElementById('navDropMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+});
+document.addEventListener('click', () => {
+  const m = document.getElementById('navDropMenu');
+  if (m) m.style.display = 'none';
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await supa.auth.signOut(); setState('login');
+});
+
+document.getElementById('refetchBtn').addEventListener('click', loadAll);
+document.getElementById('dateFrom').addEventListener('change', loadAll);
+document.getElementById('dateTo').addEventListener('change', loadAll);
+
+// ── Boot ──────────────────────────────────────────────────
+setState('loading');
+initAuth();
+</script>
+</body>
+</html>
