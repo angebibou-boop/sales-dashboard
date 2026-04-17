@@ -519,10 +519,12 @@ function setDefaultDates() {
 }
 
 // ── Fetch ───────────────────────────────────────────────────
-async function fetchSales(funnel) {
+async function fetchSales(funnel = null) {
   const from = document.getElementById('dateFrom').value;
   const to   = document.getElementById('dateTo').value;
-  const r = await fetch(SALES_BASE + '?' + new URLSearchParams({ api:'data', from, to, funnel }), {
+  const params = new URLSearchParams({ api:'data', from, to });
+  if (funnel) params.set('funnel', funnel);
+  const r = await fetch(SALES_BASE + '?' + params, {
     cache:'no-store', headers:{ Authorization:'Bearer ' + currentSession.access_token }
   });
   return r.ok ? r.json() : null;
@@ -541,10 +543,10 @@ async function loadAll() {
   document.getElementById('refetchBtn').classList.add('spinning');
   document.querySelectorAll('.funnel-tab').forEach(b => b.classList.add('loading'));
   try {
-    const [oSales, nSales, insights] = await Promise.all([
-      fetchSales('Artistic'), fetchSales('Artisticv2'), fetchMetaInsights()
+    const [allSales, oSales, nSales, insights] = await Promise.all([
+      fetchSales(), fetchSales('Artistic'), fetchSales('Artisticv2'), fetchMetaInsights()
     ]);
-    lastData = { oSales, nSales, insights };
+    lastData = { allSales, oSales, nSales, insights };
     renderAll(lastData);
   } catch(err) {
     console.error(err);
@@ -555,7 +557,7 @@ async function loadAll() {
 }
 
 // ── Master render — delegates based on activeMode ────────────
-function renderAll({ oSales, nSales, insights }) {
+function renderAll({ allSales, oSales, nSales, insights }) {
   const oMeta = aggMeta(insights, OPTIN_CAMPAIGNS);
   const nMeta = aggMeta(insights, NOOPTIN_CAMPAIGNS);
   const oS    = sumSales(oSales);
@@ -580,7 +582,8 @@ function renderAll({ oSales, nSales, insights }) {
   const color = isOptin ? 'var(--optin)' : 'var(--nooptin)';
 
   // Hero KPIs
-  if (isAll) renderHeroAll(oS, nS, oMeta, nMeta);
+  const allS = sumSales(allSales);
+  if (isAll) renderHeroAll(allS, oMeta, nMeta);
   else        renderHeroSingle(s, m, color);
 
   // Funnel cards — in single mode show only one, full-width
@@ -662,14 +665,15 @@ const ICONS = [
 ];
 
 // ── Hero: All mode ───────────────────────────────────────────
-function renderHeroAll(oS, nS, oM, nM) {
+function renderHeroAll(allS, oM, nM) {
   const spend  = oM.spend + nM.spend;
-  const leads  = oS.leads + nS.leads;
-  const income = oS.income + nS.income;
+  const leads  = allS.leads;   // all leads, no funnel filter
+  const income = allS.income;
+  const closes = allS.closes;
   const gp     = income - spend;
   const roas   = spend > 0 ? income / spend : 0;
   const cpl    = leads > 0 ? spend / leads : 0;
-  renderHeroKpis(spend, leads, gp, roas, cpl, oM.impressions+nM.impressions, oM.ulc+nM.ulc, oS.closes+nS.closes);
+  renderHeroKpis(spend, leads, gp, roas, cpl, oM.impressions+nM.impressions, oM.ulc+nM.ulc, closes);
 }
 
 // ── Hero: Single mode ────────────────────────────────────────
