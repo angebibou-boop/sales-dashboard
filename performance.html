@@ -29,19 +29,19 @@
     --pink-bg: rgba(244,114,182,0.12); --cyan-bg: rgba(34,211,238,0.12);
     --red-bg: rgba(248,113,113,0.12);
   }
-  body.light .header { background: rgba(255,255,255,0.96) !important; border-bottom-color: var(--border); }
-  body.light .hero-kpi { box-shadow: none !important; }
+  body.light .header { background: rgba(255,255,255,0.96) !important; }
   body.light .chart-card, body.light .chart-card-full { background: #fff !important; }
   body.light .funnel-card { background: #fff !important; }
   body.light thead th { background: var(--surface2); }
-  * { box-sizing: border-box; margin:0; padding:0; }
+  body.light .hero-kpi { box-shadow: none !important; }
+  * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    font-family: -apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;
-    background: var(--bg);
-    background-image: radial-gradient(ellipse at 20% 20%, rgba(107,158,255,0.06) 0%, transparent 50%),
-                      radial-gradient(ellipse at 80% 80%, rgba(244,114,182,0.06) 0%, transparent 50%);
-    background-attachment: fixed;
-    color: var(--text); min-height:100vh; -webkit-font-smoothing:antialiased;
+    font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;
+    background:var(--bg);
+    background-image:radial-gradient(ellipse at 20% 20%,rgba(107,158,255,0.06) 0%,transparent 50%),
+                     radial-gradient(ellipse at 80% 80%,rgba(244,114,182,0.06) 0%,transparent 50%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased;
   }
 
   /* ── Auth ─────────────────────────────────── */
@@ -68,7 +68,7 @@
 
   /* ── Header ───────────────────────────────── */
   .header { display:flex; align-items:center; gap:10px; padding:12px 28px; background:rgba(17,20,42,0.9); backdrop-filter:blur(16px); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; flex-wrap:wrap; }
-  .header-logo { width:34px; height:34px; border-radius:10px; flex-shrink:0; background:linear-gradient(135deg,var(--optin) 0%,var(--nooptin) 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 0 16px rgba(107,158,255,0.35); }
+  .header-logo { width:34px; height:34px; border-radius:10px; flex-shrink:0; background:linear-gradient(135deg,var(--optin) 0%,var(--nooptin) 100%); display:flex; align-items:center; justify-content:center; box-shadow:0 0 16px rgba(107,158,255,0.3); }
   .header-title { font-size:1rem; font-weight:700; letter-spacing:-0.02em; }
   .header-sub { color:var(--text-muted); font-size:0.7rem; margin-top:1px; }
   .header-spacer { flex:1; }
@@ -90,7 +90,7 @@
   /* ── Section head ─────────────────────────── */
   .section-head { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
   .section-head-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .section-head-text { font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); }
+  .section-head-text { font-size:0.68rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); white-space:nowrap; }
   .section-head-line { flex:1; height:1px; background:var(--border); }
 
   /* ── Hero KPIs ────────────────────────────── */
@@ -98,121 +98,120 @@
   @media(max-width:1000px) { .hero-grid { grid-template-columns:repeat(2,1fr); } }
   @media(max-width:500px) { .hero-grid { grid-template-columns:1fr; } }
 
-  .hero-kpi { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px 22px 18px; position:relative; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
+  .hero-kpi { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px 22px 18px; position:relative; overflow:hidden; transition:transform 0.2s; }
   .hero-kpi:hover { transform:translateY(-2px); }
-  .hero-kpi.blue   { border-color:rgba(107,158,255,0.25); box-shadow:0 0 0 1px rgba(107,158,255,0.08),0 8px 32px rgba(107,158,255,0.1); }
-  .hero-kpi.green  { border-color:rgba(52,211,153,0.25);  box-shadow:0 0 0 1px rgba(52,211,153,0.08), 0 8px 32px rgba(52,211,153,0.1); }
-  .hero-kpi.gold   { border-color:rgba(251,191,36,0.25);  box-shadow:0 0 0 1px rgba(251,191,36,0.08), 0 8px 32px rgba(251,191,36,0.1); }
-  .hero-kpi.purple { border-color:rgba(167,139,250,0.25); box-shadow:0 0 0 1px rgba(167,139,250,0.08),0 8px 32px rgba(167,139,250,0.1); }
-
+  .hero-kpi.blue   { border-color:rgba(107,158,255,0.25); box-shadow:0 8px 32px rgba(107,158,255,0.08); }
+  .hero-kpi.green  { border-color:rgba(52,211,153,0.25);  box-shadow:0 8px 32px rgba(52,211,153,0.08); }
+  .hero-kpi.gold   { border-color:rgba(251,191,36,0.25);  box-shadow:0 8px 32px rgba(251,191,36,0.08); }
+  .hero-kpi.purple { border-color:rgba(167,139,250,0.25); box-shadow:0 8px 32px rgba(167,139,250,0.08); }
   .hero-kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; border-radius:18px 18px 0 0; }
   .hero-kpi.blue::after   { background:linear-gradient(90deg,var(--blue),transparent); }
   .hero-kpi.green::after  { background:linear-gradient(90deg,var(--green),transparent); }
   .hero-kpi.gold::after   { background:linear-gradient(90deg,var(--gold),transparent); }
   .hero-kpi.purple::after { background:linear-gradient(90deg,var(--purple),transparent); }
-
-  .hero-kpi-glow { position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; opacity:0.12; pointer-events:none; }
-  .blue .hero-kpi-glow   { background:var(--blue);   box-shadow:0 0 60px 20px var(--blue); }
-  .green .hero-kpi-glow  { background:var(--green);  box-shadow:0 0 60px 20px var(--green); }
-  .gold .hero-kpi-glow   { background:var(--gold);   box-shadow:0 0 60px 20px var(--gold); }
-  .purple .hero-kpi-glow { background:var(--purple); box-shadow:0 0 60px 20px var(--purple); }
-
-  .hero-kpi-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+  .hero-kpi-glow { position:absolute; top:-20px; right:-20px; width:80px; height:80px; border-radius:50%; opacity:0.1; pointer-events:none; }
+  .blue .hero-kpi-glow   { background:var(--blue);   }
+  .green .hero-kpi-glow  { background:var(--green);  }
+  .gold .hero-kpi-glow   { background:var(--gold);   }
+  .purple .hero-kpi-glow { background:var(--purple); }
+  .hero-kpi-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
   .blue .hero-kpi-icon   { background:rgba(107,158,255,0.15); }
   .green .hero-kpi-icon  { background:rgba(52,211,153,0.15); }
   .gold .hero-kpi-icon   { background:rgba(251,191,36,0.15); }
   .purple .hero-kpi-icon { background:rgba(167,139,250,0.15); }
-
   .hero-kpi-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:8px; }
-  .hero-kpi-value { font-size:1.9rem; font-weight:800; letter-spacing:-0.04em; line-height:1; margin-bottom:10px; }
-  .hero-kpi-sub { font-size:0.71rem; color:var(--text-dim); line-height:1.5; }
-  .hero-kpi-badge { display:inline-flex; align-items:center; gap:4px; font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:6px; margin-top:8px; }
+  .hero-kpi-value { font-size:1.85rem; font-weight:800; letter-spacing:-0.04em; line-height:1; margin-bottom:8px; }
+  .hero-kpi-sub { font-size:0.7rem; color:var(--text-dim); line-height:1.5; }
+
+  /* ── Funnel cards ─────────────────────────── */
+  .funnels-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+  @media(max-width:820px) { .funnels-row { grid-template-columns:1fr; } }
+
+  .funnel-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
+  .funnel-card.optin  { border-color:rgba(107,158,255,0.25); }
+  .funnel-card.nooptin{ border-color:rgba(244,114,182,0.25); }
+
+  /* Card header with big 3 stats */
+  .funnel-card-header { padding:18px 20px 16px; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
+  .funnel-card-header::before { content:''; position:absolute; inset:0; opacity:0.04; pointer-events:none; }
+  .funnel-card.optin .funnel-card-header::before  { background:radial-gradient(circle at right,var(--optin),transparent 70%); }
+  .funnel-card.nooptin .funnel-card-header::before{ background:radial-gradient(circle at right,var(--nooptin),transparent 70%); }
+
+  .funnel-header-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .funnel-pill { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .funnel-card-title { font-size:0.97rem; font-weight:700; }
+  .funnel-card-tag { font-size:0.68rem; color:var(--text-dim); margin-top:2px; }
+
+  .funnel-big3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .funnel-big-stat { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; text-align:center; }
+  .funnel-big-val { font-size:1.15rem; font-weight:800; letter-spacing:-0.03em; line-height:1.1; }
+  .funnel-big-label { font-size:0.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-top:4px; }
+
+  /* Card body with metric sections */
+  .funnel-body { padding:0; }
+
+  /* Metric section header */
+  .msect { display:flex; align-items:center; gap:8px; padding:12px 20px 8px; background:var(--surface2); border-bottom:1px solid var(--border); }
+  .msect-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .msect-label { font-size:0.62rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-dim); }
+
+  /* Metric rows */
+  .fmet { display:flex; align-items:center; justify-content:space-between; padding:9px 20px; border-bottom:1px solid rgba(37,40,64,0.3); }
+  .fmet:last-child { border-bottom:none; }
+  .fmet-label { font-size:0.77rem; color:var(--text-muted); }
+  .fmet-val { font-size:0.88rem; font-weight:700; font-variant-numeric:tabular-nums; text-align:right; }
+
+  /* Rings for rates */
+  .rings-row { display:flex; gap:10px; padding:14px 20px; border-bottom:1px solid var(--border); }
+  .ring-wrap { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:12px; display:flex; align-items:center; gap:10px; }
+  .ring-svg { flex-shrink:0; }
+  .ring-info-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); }
+  .ring-info-val { font-size:1.05rem; font-weight:800; letter-spacing:-0.02em; margin-top:2px; }
 
   /* ── Charts ───────────────────────────────── */
   .chart-card-full { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px 24px; margin-bottom:22px; }
   .charts-2col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:22px; }
   @media(max-width:900px) { .charts-2col { grid-template-columns:1fr; } }
   .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:20px 22px; }
-
-  .chart-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:8px; }
-  .chart-title { font-size:0.87rem; font-weight:700; color:var(--text); }
-  .chart-sub { font-size:0.7rem; color:var(--text-muted); margin-top:2px; }
-  .chart-legend { display:flex; gap:14px; flex-wrap:wrap; }
-  .leg-item { display:flex; align-items:center; gap:6px; font-size:0.7rem; color:var(--text-muted); font-weight:500; }
-  .leg-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-  .leg-line { width:16px; height:3px; border-radius:2px; flex-shrink:0; }
+  .chart-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+  .chart-title { font-size:0.87rem; font-weight:700; }
+  .chart-sub { font-size:0.69rem; color:var(--text-muted); margin-top:3px; }
+  .chart-legend { display:flex; gap:12px; flex-wrap:wrap; }
+  .leg-item { display:flex; align-items:center; gap:5px; font-size:0.69rem; color:var(--text-muted); font-weight:500; }
+  .leg-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+  .leg-line { width:14px; height:3px; border-radius:2px; flex-shrink:0; }
   .chart-wrap-lg { height:280px; }
-  .chart-wrap-md { height:240px; }
-  .chart-wrap-sm { height:210px; }
-
-  /* ── Funnel cards ─────────────────────────── */
-  .funnels-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:22px; }
-  @media(max-width:800px) { .funnels-row { grid-template-columns:1fr; } }
-
-  .funnel-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; }
-  .funnel-card.optin  { border-color:rgba(107,158,255,0.2); }
-  .funnel-card.nooptin{ border-color:rgba(244,114,182,0.2); }
-
-  .funnel-card-header { padding:20px 22px 16px; border-bottom:1px solid var(--border); position:relative; overflow:hidden; }
-  .funnel-card-header::before { content:''; position:absolute; inset:0; opacity:0.05; }
-  .funnel-card.optin .funnel-card-header::before  { background:radial-gradient(circle at right, var(--optin), transparent 70%); }
-  .funnel-card.nooptin .funnel-card-header::before { background:radial-gradient(circle at right, var(--nooptin), transparent 70%); }
-  .funnel-header-top { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
-  .funnel-pill { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-  .funnel-card-title { font-size:1rem; font-weight:700; }
-  .funnel-card-tag { font-size:0.69rem; color:var(--text-dim); }
-
-  /* Big 3 stats in funnel header */
-  .funnel-big3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-  .funnel-big-stat { text-align:center; }
-  .funnel-big-val { font-size:1.2rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
-  .funnel-big-label { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-dim); margin-top:4px; }
-
-  /* Funnel body */
-  .funnel-body { padding:18px 22px; }
-
-  /* Ring progress */
-  .rings-row { display:flex; gap:16px; margin-bottom:16px; }
-  .ring-wrap { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:12px; }
-  .ring-svg { flex-shrink:0; }
-  .ring-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); }
-  .ring-val { font-size:1.15rem; font-weight:800; letter-spacing:-0.02em; margin-top:2px; }
-
-  /* Mini stat grid */
-  .mini-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .mini-stat { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
-  .mini-stat-label { font-size:0.64rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); margin-bottom:4px; }
-  .mini-stat-val { font-size:0.9rem; font-weight:700; font-variant-numeric:tabular-nums; }
+  .chart-wrap-md { height:230px; }
 
   /* ── Conversion funnel ─────────────────────── */
-  .funnel-visual-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:24px; margin-bottom:22px; }
-  .funnel-flow { display:flex; align-items:stretch; gap:0; margin-top:16px; }
+  .funnel-visual-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px 24px; margin-bottom:22px; }
+  .funnel-flow { display:flex; align-items:stretch; margin-top:20px; }
   .funnel-stage { flex:1; display:flex; flex-direction:column; align-items:center; position:relative; }
-  .funnel-stage:not(:last-child)::after { content:'›'; position:absolute; right:-10px; top:40%; color:var(--text-dim); font-size:1.1rem; z-index:1; line-height:1; }
-  .funnel-stage-label { font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:10px; text-align:center; }
+  .funnel-stage:not(:last-child)::after { content:'›'; position:absolute; right:-9px; top:38%; color:var(--text-dim); font-size:1rem; z-index:1; }
+  .funnel-stage-label { font-size:0.58rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:10px; text-align:center; }
   .funnel-bars { display:flex; gap:5px; justify-content:center; align-items:flex-end; height:90px; }
-  .funnel-bar { width:20px; border-radius:4px 4px 0 0; min-height:4px; position:relative; transition:height 0.8s cubic-bezier(.4,0,.2,1); }
-  .funnel-bar-tooltip { position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%); background:var(--surface3); border:1px solid var(--border); border-radius:6px; padding:4px 7px; font-size:0.65rem; font-weight:700; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity 0.15s; }
-  .funnel-bar:hover .funnel-bar-tooltip { opacity:1; }
+  .funnel-bar { width:20px; border-radius:4px 4px 0 0; min-height:4px; }
   .funnel-stage-data { margin-top:10px; text-align:center; }
-  .funnel-stage-vals { display:flex; gap:8px; justify-content:center; }
-  .funnel-stage-val { font-size:0.72rem; font-weight:700; font-variant-numeric:tabular-nums; }
-  .funnel-conv { display:flex; flex-direction:column; align-items:center; gap:2px; margin-top:6px; }
-  .funnel-conv-pct { font-size:0.6rem; color:var(--text-dim); }
+  .funnel-stage-vals { display:flex; gap:6px; justify-content:center; }
+  .funnel-stage-val { font-size:0.71rem; font-weight:700; }
+  .funnel-conv { margin-top:5px; }
+  .funnel-conv-pct { font-size:0.59rem; color:var(--text-dim); display:block; }
 
   /* ── Compare table ────────────────────────── */
   .compare-card { background:var(--surface); border:1px solid var(--border); border-radius:18px; overflow:hidden; margin-bottom:22px; }
-  .compare-card table { width:100%; border-collapse:collapse; font-size:0.82rem; }
-  .compare-card thead th { background:var(--surface2); padding:13px 20px; text-align:left; font-size:0.67rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); border-bottom:1px solid var(--border); }
+  .compare-card table { width:100%; border-collapse:collapse; font-size:0.81rem; }
+  .compare-card thead th { background:var(--surface2); padding:12px 18px; text-align:left; font-size:0.65rem; font-weight:800; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); border-bottom:1px solid var(--border); }
   .compare-card thead th:not(:first-child) { text-align:right; }
-  .compare-card tbody td { padding:12px 20px; border-bottom:1px solid rgba(37,40,64,0.35); vertical-align:middle; }
+  .compare-card tbody td { padding:10px 18px; border-bottom:1px solid rgba(37,40,64,0.3); vertical-align:middle; }
   .compare-card tbody td:not(:first-child) { text-align:right; font-variant-numeric:tabular-nums; }
   .compare-card tbody tr:last-child td { border-bottom:none; }
   .compare-card tbody tr:hover { background:var(--surface2); }
-  .td-label { color:var(--text-muted); font-size:0.8rem; }
-  .win { color:var(--green); font-weight:700; }
+  /* section divider row */
+  .compare-card tbody tr.tbl-sect td { background:var(--surface2); padding:8px 18px; font-size:0.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-dim); border-bottom:1px solid var(--border); }
+  .td-label { color:var(--text-muted); font-size:0.79rem; }
+  .win  { color:var(--green); font-weight:700; }
   .lose { color:var(--text-muted); font-weight:500; }
-  .win-badge { display:inline-flex; align-items:center; gap:4px; font-size:0.68rem; font-weight:700; padding:3px 9px; border-radius:6px; }
+  .win-badge { display:inline-flex; align-items:center; gap:4px; font-size:0.67rem; font-weight:700; padding:3px 9px; border-radius:6px; }
 </style>
 </head>
 <body data-state="loading">
@@ -238,7 +237,7 @@
 <div id="app">
   <header class="header">
     <div class="header-logo">
-      <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     </div>
     <div>
       <div class="header-title">VSL Performance</div>
@@ -280,34 +279,34 @@
 
   <div class="main">
 
-    <!-- ─── Hero KPIs ─────────────────────────── -->
+    <!-- ── Hero KPIs ─────────────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(107,158,255,0.12);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+      <div class="section-head-icon" style="background:var(--blue-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
       </div>
       <span class="section-head-text">Combined Overview</span>
       <div class="section-head-line"></div>
     </div>
     <div class="hero-grid" id="heroGrid">
-      <div class="hero-kpi blue"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Total Spend</div></div>
+      <div class="hero-kpi blue"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Total Ad Spend</div></div>
       <div class="hero-kpi green"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Total Leads</div></div>
-      <div class="hero-kpi gold"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Total Revenue</div></div>
+      <div class="hero-kpi gold"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Gross Profit</div></div>
       <div class="hero-kpi purple"><div class="hero-kpi-glow"></div><div class="hero-kpi-value">—</div><div class="hero-kpi-label">Blended ROAS</div></div>
     </div>
 
-    <!-- ─── Overview Chart ────────────────────── -->
+    <!-- ── Campaign Overview Chart ───────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(34,211,238,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div class="section-head-icon" style="background:var(--cyan-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
-      <span class="section-head-text">Campaign Performance</span>
+      <span class="section-head-text">Daily Performance</span>
       <div class="section-head-line"></div>
     </div>
     <div class="chart-card-full">
       <div class="chart-top">
         <div>
-          <div class="chart-title">Daily Spend & Leads</div>
-          <div class="chart-sub">Ad spend (bars) with daily leads overlay (line)</div>
+          <div class="chart-title">Spend & Leads by Day</div>
+          <div class="chart-sub">Ad spend (bars) with lead volume overlay (line, right axis)</div>
         </div>
         <div class="chart-legend">
           <div class="leg-item"><div class="leg-dot" style="background:rgba(107,158,255,0.7);"></div>Opt-In Spend</div>
@@ -319,23 +318,23 @@
       <div class="chart-wrap-lg"><canvas id="overviewChart"></canvas></div>
     </div>
 
-    <!-- ─── Funnel cards ──────────────────────── -->
+    <!-- ── Funnel Cards ───────────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(167,139,250,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <div class="section-head-icon" style="background:var(--purple-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       </div>
       <span class="section-head-text">Funnel Breakdown</span>
       <div class="section-head-line"></div>
     </div>
     <div class="funnels-row">
-      <div class="funnel-card optin" id="cardOptin"></div>
+      <div class="funnel-card optin"   id="cardOptin"></div>
       <div class="funnel-card nooptin" id="cardNooptin"></div>
     </div>
 
-    <!-- ─── Conversion Journey ────────────────── -->
+    <!-- ── Conversion Journey ─────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(52,211,153,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      <div class="section-head-icon" style="background:var(--green-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </div>
       <span class="section-head-text">Conversion Journey</span>
       <div class="section-head-line"></div>
@@ -343,21 +342,21 @@
     <div class="funnel-visual-card">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div>
-          <div class="chart-title">Drop-off at each stage</div>
-          <div class="chart-sub">How many prospects advance through each step</div>
+          <div class="chart-title">Stage Drop-off</div>
+          <div class="chart-sub">Volume at each step — conversion rate to next stage shown below</div>
         </div>
         <div class="chart-legend">
           <div class="leg-item"><div class="leg-dot" style="background:var(--optin);"></div>Opt-In</div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--nooptin);"></div>No Opt-In</div>
         </div>
       </div>
-      <div class="funnel-flow" id="stagesGrid" style="margin-top:20px;"></div>
+      <div class="funnel-flow" id="stagesGrid"></div>
     </div>
 
-    <!-- ─── Trends ────────────────────────────── -->
+    <!-- ── Trend Charts ───────────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(251,191,36,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+      <div class="section-head-icon" style="background:var(--gold-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
       </div>
       <span class="section-head-text">Daily Trends</span>
       <div class="section-head-line"></div>
@@ -365,10 +364,7 @@
     <div class="charts-2col">
       <div class="chart-card">
         <div class="chart-top">
-          <div>
-            <div class="chart-title">Leads per Day</div>
-            <div class="chart-sub">New leads generated daily</div>
-          </div>
+          <div><div class="chart-title">Leads per Day</div><div class="chart-sub">New leads generated daily</div></div>
           <div class="chart-legend">
             <div class="leg-item"><div class="leg-line" style="background:var(--optin);"></div>Opt-In</div>
             <div class="leg-item"><div class="leg-line" style="background:var(--nooptin);"></div>No Opt-In</div>
@@ -378,10 +374,7 @@
       </div>
       <div class="chart-card">
         <div class="chart-top">
-          <div>
-            <div class="chart-title">Closes per Day</div>
-            <div class="chart-sub">Sales closed daily</div>
-          </div>
+          <div><div class="chart-title">Closes per Day</div><div class="chart-sub">Sales closed daily</div></div>
           <div class="chart-legend">
             <div class="leg-item"><div class="leg-line" style="background:var(--green);"></div>Opt-In</div>
             <div class="leg-item"><div class="leg-line" style="background:var(--gold);"></div>No Opt-In</div>
@@ -391,10 +384,10 @@
       </div>
     </div>
 
-    <!-- ─── Cost & Revenue ────────────────────── -->
+    <!-- ── Economics Charts ───────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(248,113,113,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <div class="section-head-icon" style="background:var(--red-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       </div>
       <span class="section-head-text">Economics</span>
       <div class="section-head-line"></div>
@@ -402,10 +395,7 @@
     <div class="charts-2col">
       <div class="chart-card">
         <div class="chart-top">
-          <div>
-            <div class="chart-title">Acquisition Costs</div>
-            <div class="chart-sub">Cost per Lead vs Cost per Close</div>
-          </div>
+          <div><div class="chart-title">Cost per Lead vs Cost per Close ($PC)</div><div class="chart-sub">Acquisition cost comparison</div></div>
           <div class="chart-legend">
             <div class="leg-item"><div class="leg-dot" style="background:rgba(107,158,255,0.8);"></div>Opt-In</div>
             <div class="leg-item"><div class="leg-dot" style="background:rgba(244,114,182,0.8);"></div>No Opt-In</div>
@@ -415,12 +405,9 @@
       </div>
       <div class="chart-card">
         <div class="chart-top">
-          <div>
-            <div class="chart-title">Revenue vs Spend</div>
-            <div class="chart-sub">Gross income against ad spend per funnel</div>
-          </div>
+          <div><div class="chart-title">Gross Income vs Ad Spend</div><div class="chart-sub">Revenue versus what was spent</div></div>
           <div class="chart-legend">
-            <div class="leg-item"><div class="leg-dot" style="background:rgba(52,211,153,0.8);"></div>Revenue</div>
+            <div class="leg-item"><div class="leg-dot" style="background:rgba(52,211,153,0.8);"></div>Gross Income</div>
             <div class="leg-item"><div class="leg-dot" style="background:rgba(251,191,36,0.75);"></div>Ad Spend</div>
           </div>
         </div>
@@ -428,10 +415,10 @@
       </div>
     </div>
 
-    <!-- ─── Head-to-Head ──────────────────────── -->
+    <!-- ── Head-to-Head ───────────────────────── -->
     <div class="section-head">
-      <div class="section-head-icon" style="background:rgba(34,211,238,0.1);">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+      <div class="section-head-icon" style="background:var(--cyan-bg);">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
       </div>
       <span class="section-head-text">Head-to-Head Comparison</span>
       <div class="section-head-line"></div>
@@ -452,27 +439,27 @@
       </table>
     </div>
 
-  </div>
-</div>
+  </div><!-- /.main -->
+</div><!-- /#app -->
 
 <script>
 const SUPABASE_URL      = "https://pojqljrhhtnigyrtzdzz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos";
-const SALES_BASE        = SUPABASE_URL + "/functions/v1/dashboard";
-const META_BASE_        = SUPABASE_URL + "/functions/v1/meta-ads";
+const SALES_BASE = SUPABASE_URL + "/functions/v1/dashboard";
+const META_BASE_ = SUPABASE_URL + "/functions/v1/meta-ads";
 
 const OPTIN_CAMPAIGNS   = ['CAPXEL VSL (Survey) V2 BA Mar27','CAPXEL VSL (Survey) V2 BA Mar18'];
 const NOOPTIN_CAMPAIGNS = ['CAPXEL VSL (Survey) V2 BA Mar27 NO OPT-IN'];
 
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession:true, detectSessionInUrl:true, autoRefreshToken:true }
+  auth:{ persistSession:true, detectSessionInUrl:true, autoRefreshToken:true }
 });
 
 function setState(s) { document.body.dataset.state = s; }
 let currentSession = null;
 let charts = {};
 
-// ── Theme ──────────────────────────────────────────────
+// ── Theme ──────────────────────────────────────────────────
 const _saved = localStorage.getItem('theme') || 'dark';
 if (_saved === 'light') document.body.classList.add('light');
 function updateThemeBtn() {
@@ -486,7 +473,7 @@ document.getElementById('themeBtn').addEventListener('click', () => {
   updateThemeBtn();
 });
 
-// ── Nav dropdown ────────────────────────────────────────
+// ── Nav dropdown ────────────────────────────────────────────
 document.getElementById('navDropBtn').addEventListener('click', e => {
   e.stopPropagation();
   const m = document.getElementById('navDropMenu');
@@ -497,9 +484,9 @@ document.addEventListener('click', () => {
   if (m) m.style.display = 'none';
 });
 
-// ── Auth ────────────────────────────────────────────────
+// ── Auth ────────────────────────────────────────────────────
 async function initAuth() {
-  const { data: { session } } = await supa.auth.getSession();
+  const { data:{ session } } = await supa.auth.getSession();
   if (session) { onAuthed(session); return; }
   setState('login');
   supa.auth.onAuthStateChange((_e, sess) => { if (sess) onAuthed(sess); else setState('login'); });
@@ -520,12 +507,12 @@ function setDefaultDates() {
   document.getElementById('dateFrom').value = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 }
 
-// ── Fetch ───────────────────────────────────────────────
+// ── Fetch ───────────────────────────────────────────────────
 async function fetchSales(funnel) {
   const from = document.getElementById('dateFrom').value;
   const to   = document.getElementById('dateTo').value;
   const r = await fetch(SALES_BASE + '?' + new URLSearchParams({ api:'data', from, to, funnel }), {
-    cache: 'no-store', headers: { Authorization: 'Bearer ' + currentSession.access_token }
+    cache:'no-store', headers:{ Authorization:'Bearer ' + currentSession.access_token }
   });
   return r.ok ? r.json() : null;
 }
@@ -534,7 +521,7 @@ async function fetchMetaInsights() {
   const from = document.getElementById('dateFrom').value;
   const to   = document.getElementById('dateTo').value;
   const r = await fetch(META_BASE_ + '?' + new URLSearchParams({ api:'insights', from, to }), {
-    cache: 'no-store', headers: { Authorization: 'Bearer ' + currentSession.access_token }
+    cache:'no-store', headers:{ Authorization:'Bearer ' + currentSession.access_token }
   });
   return r.ok ? r.json() : [];
 }
@@ -563,15 +550,16 @@ async function loadAll() {
   }
 }
 
-// ── Aggregation ─────────────────────────────────────────
+// ── Aggregation ─────────────────────────────────────────────
 function aggMeta(rows, names) {
   const byDate = {};
-  let spend = 0, impressions = 0, clicks = 0;
+  let spend = 0, impressions = 0, clicks = 0, ulc = 0;
   rows.forEach(r => {
     if (!names.includes(r.campaign_name)) return;
     spend       += +r.spend || 0;
     impressions += +r.impressions || 0;
     clicks      += +r.clicks || 0;
+    ulc         += +r.unique_link_clicks || 0;
     const d = r.date_start || '';
     if (d) {
       byDate[d] = byDate[d] || { spend:0, clicks:0 };
@@ -579,7 +567,7 @@ function aggMeta(rows, names) {
       byDate[d].clicks += +r.clicks || 0;
     }
   });
-  return { spend, impressions, clicks, byDate };
+  return { spend, impressions, clicks, ulc, byDate };
 }
 
 function sumSales(data) {
@@ -591,78 +579,82 @@ function sumSales(data) {
     contacted += +d.contacted || 0;
     closes    += +d.closes_total || 0;
     income    += +d.gross_income || 0;
-    byDate[d.stat_date] = { leads: +d.leads||0, closes: +d.closes_total||0 };
+    byDate[d.stat_date] = { leads:+d.leads||0, closes:+d.closes_total||0 };
   });
   return { leads, contacted, closes, income, byDate };
 }
 
-// ── Formatters ──────────────────────────────────────────
+// ── Formatters ──────────────────────────────────────────────
 const $m = v => '$' + (+v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const $0 = v => '$' + Math.round(+v||0).toLocaleString();
 const N  = v => (+v||0).toLocaleString();
 const P  = (n,d) => d>0 ? (100*n/d).toFixed(1)+'%' : '—';
-const fmtK = v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 10000 ? (v/1000).toFixed(1)+'K' : N(v);
+const fmtK = v => v>=1000000?(v/1000000).toFixed(1)+'M':v>=10000?(v/1000).toFixed(1)+'K':N(v);
 
-// ── Hero KPIs ───────────────────────────────────────────
+// ── Hero KPIs ────────────────────────────────────────────────
 function renderHero(oS, nS, oM, nM) {
   const totalSpend  = oM.spend + nM.spend;
   const totalLeads  = oS.leads + nS.leads;
   const totalIncome = oS.income + nS.income;
+  const grossProfit = totalIncome - totalSpend;
   const roas        = totalSpend > 0 ? totalIncome / totalSpend : 0;
-  const roasColor   = roas >= 2 ? 'var(--green)' : roas >= 1 ? 'var(--gold)' : 'var(--red)';
+  const roasColor   = roas>=2?'var(--green)':roas>=1?'var(--gold)':'var(--red)';
+  const cplCombined = totalLeads > 0 ? totalSpend / totalLeads : 0;
 
   const icons = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
-    `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-    `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
-    `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>`,
   ];
 
-  const kpis = [
-    { cls:'blue',   label:'Total Ad Spend',  value: $0(totalSpend),   sub: fmtK(oM.impressions + nM.impressions) + ' impressions total', badge: null },
-    { cls:'green',  label:'Total Leads',     value: N(totalLeads),    sub: P(oS.contacted+nS.contacted, totalLeads) + ' avg contact rate', badge: null },
-    { cls:'gold',   label:'Total Revenue',   value: $0(totalIncome),  sub: N(oS.closes+nS.closes) + ' total closes', badge: null },
-    { cls:'purple', label:'Blended ROAS',    value: roas>0?roas.toFixed(2)+'x':'—', sub: 'Revenue ÷ Ad Spend', badge: { color: roasColor, text: roas>=2?'Strong':'Moderate' } },
-  ];
-
-  document.getElementById('heroGrid').innerHTML = kpis.map((k, i) => `
+  document.getElementById('heroGrid').innerHTML = [
+    { cls:'blue',   label:'Total Ad Spend',  value:$0(totalSpend),   sub: fmtK(oM.impressions+nM.impressions)+' impressions · '+N(oM.ulc+nM.ulc)+' ULC' },
+    { cls:'green',  label:'Total Leads',     value:N(totalLeads),    sub: 'CPL: '+$m(cplCombined)+' · '+P(oS.contacted+nS.contacted,totalLeads)+' contacted' },
+    { cls:'gold',   label:'Gross Profit',    value:$0(grossProfit),  sub: 'Revenue: '+$0(totalIncome)+' · Spend: '+$0(totalSpend), valColor: grossProfit>=0?'var(--gold)':'var(--red)' },
+    { cls:'purple', label:'Blended ROAS',    value:roas>0?roas.toFixed(2)+'x':'—', sub: N(oS.closes+nS.closes)+' total closes', valColor: roasColor },
+  ].map((k,i) => `
     <div class="hero-kpi ${k.cls}">
       <div class="hero-kpi-glow"></div>
       <div class="hero-kpi-icon">${icons[i]}</div>
       <div class="hero-kpi-label">${k.label}</div>
-      <div class="hero-kpi-value">${k.value}</div>
+      <div class="hero-kpi-value" style="${k.valColor?'color:'+k.valColor+';':''}">${k.value}</div>
       <div class="hero-kpi-sub">${k.sub}</div>
-      ${k.badge ? `<div class="hero-kpi-badge" style="background:${k.badge.color}22;color:${k.badge.color};">${k.badge.text}</div>` : ''}
     </div>`).join('');
 }
 
-// ── Funnel card with ring progress ──────────────────────
-function ring(pct, color, size=52) {
-  const r = 16, circ = 2 * Math.PI * r, fill = Math.min(pct/100, 1) * circ;
-  return `<svg class="ring-svg" viewBox="0 0 40 40" width="${size}" height="${size}" style="transform:rotate(-90deg)">
-    <circle cx="20" cy="20" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="5"/>
-    <circle cx="20" cy="20" r="${r}" fill="none" stroke="${color}" stroke-width="5"
+// ── Ring SVG ─────────────────────────────────────────────────
+function ring(pct, color, size=48) {
+  const r = 15, circ = 2*Math.PI*r, fill = Math.min(Math.max(pct/100,0),1)*circ;
+  return `<svg class="ring-svg" viewBox="0 0 36 36" width="${size}" height="${size}" style="transform:rotate(-90deg)">
+    <circle cx="18" cy="18" r="${r}" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="4.5"/>
+    <circle cx="18" cy="18" r="${r}" fill="none" stroke="${color}" stroke-width="4.5"
       stroke-dasharray="${fill.toFixed(2)} ${circ.toFixed(2)}" stroke-linecap="round"/>
   </svg>`;
 }
 
+// ── Funnel Card ──────────────────────────────────────────────
+//   Groups: Ads | Leads | Sales
 function renderFunnelCard(id, s, m, title, tag, color) {
-  const cpl     = s.leads  > 0 ? m.spend / s.leads  : 0;
-  const cpc_    = s.closes > 0 ? m.spend / s.closes : 0;
-  const roas    = m.spend  > 0 ? s.income / m.spend : 0;
-  const ctr     = m.impressions > 0 ? (m.clicks / m.impressions) * 100 : 0;
-  const cpm_    = m.impressions > 0 ? (m.spend / m.impressions) * 1000 : 0;
-  const conRate = s.leads > 0 ? (s.contacted / s.leads) * 100 : 0;
-  const clsRate = s.leads > 0 ? (s.closes / s.leads) * 100 : 0;
-  const roasColor = roas >= 2 ? 'var(--green)' : roas >= 1 ? 'var(--gold)' : 'var(--red)';
+  // Computed metrics
+  const cpc_meta   = m.clicks > 0      ? m.spend / m.clicks      : 0; // Cost Per Click
+  const ctr        = m.impressions > 0 ? (m.clicks/m.impressions)*100 : 0;
+  const cpl        = s.leads > 0       ? m.spend / s.leads        : 0;
+  const contactRate= s.leads > 0       ? (s.contacted/s.leads)*100 : 0;
+  const closeRate  = s.leads > 0       ? (s.closes/s.leads)*100   : 0;
+  const dollarPC   = s.closes > 0      ? m.spend / s.closes       : 0; // $PC = Cost Per Close
+  const grossProfit= s.income - m.spend;
+  const roas       = m.spend > 0       ? s.income / m.spend       : 0;
+  const roasColor  = roas>=2?'var(--green)':roas>=1?'var(--gold)':'var(--red)';
+  const gpColor    = grossProfit>=0?'var(--green)':'var(--red)';
 
-  const miniStat = (label, val, col) =>
-    `<div class="mini-stat"><div class="mini-stat-label">${label}</div><div class="mini-stat-val" style="color:${col||'var(--text)'};">${val}</div></div>`;
+  const row = (label, val, col='') =>
+    `<div class="fmet"><span class="fmet-label">${label}</span><span class="fmet-val"${col?` style="color:${col};"`:''} >${val}</span></div>`;
 
   document.getElementById(id).innerHTML = `
     <div class="funnel-card-header">
       <div class="funnel-header-top">
-        <div class="funnel-pill" style="background:${color};box-shadow:0 0 10px ${color}99;"></div>
+        <div class="funnel-pill" style="background:${color};box-shadow:0 0 8px ${color}99;"></div>
         <div><div class="funnel-card-title">${title}</div><div class="funnel-card-tag">${tag}</div></div>
       </div>
       <div class="funnel-big3">
@@ -671,262 +663,283 @@ function renderFunnelCard(id, s, m, title, tag, color) {
           <div class="funnel-big-label">Ad Spend</div>
         </div>
         <div class="funnel-big-stat">
-          <div class="funnel-big-val" style="color:var(--text);">${N(s.leads)}</div>
+          <div class="funnel-big-val">${N(s.leads)}</div>
           <div class="funnel-big-label">Leads</div>
         </div>
         <div class="funnel-big-stat">
-          <div class="funnel-big-val" style="color:var(--gold);">${$0(s.income)}</div>
-          <div class="funnel-big-label">Revenue</div>
+          <div class="funnel-big-val" style="color:${gpColor};">${$0(grossProfit)}</div>
+          <div class="funnel-big-label">Gross Profit</div>
         </div>
       </div>
     </div>
     <div class="funnel-body">
+
+      <!-- Contact & Close rate rings -->
       <div class="rings-row">
         <div class="ring-wrap">
-          ${ring(conRate, 'var(--cyan)')}
+          ${ring(contactRate,'var(--cyan)')}
           <div>
-            <div class="ring-label">Contact Rate</div>
-            <div class="ring-val" style="color:var(--cyan);">${conRate.toFixed(1)}%</div>
+            <div class="ring-info-label">Contact Rate</div>
+            <div class="ring-info-val" style="color:var(--cyan);">${contactRate.toFixed(1)}%</div>
           </div>
         </div>
         <div class="ring-wrap">
-          ${ring(clsRate, 'var(--green)')}
+          ${ring(closeRate,'var(--green)')}
           <div>
-            <div class="ring-label">Close Rate</div>
-            <div class="ring-val" style="color:var(--green);">${clsRate.toFixed(1)}%</div>
+            <div class="ring-info-label">Close Rate (CR)</div>
+            <div class="ring-info-val" style="color:var(--green);">${closeRate.toFixed(1)}%</div>
           </div>
         </div>
       </div>
-      <div class="mini-stats">
-        ${miniStat('CTR',        ctr.toFixed(2)+'%')}
-        ${miniStat('CPM',        $m(cpm_))}
-        ${miniStat('Cost/Lead',  s.leads>0?$m(cpl):'—',  'var(--text-muted)')}
-        ${miniStat('Cost/Close', s.closes>0?$m(cpc_):'—','var(--text-muted)')}
-        ${miniStat('Closes',     N(s.closes), 'var(--green)')}
-        ${miniStat('ROAS',       roas>0?roas.toFixed(2)+'x':'—', roasColor)}
+
+      <!-- Group 1: Ads -->
+      <div class="msect">
+        <div class="msect-dot" style="background:${color};"></div>
+        <div class="msect-label">Ad Performance</div>
       </div>
+      ${row('Ad Spend',    $m(m.spend),                                       color)}
+      ${row('Impressions', N(m.impressions))}
+      ${row('CPC',         m.clicks>0    ? $m(cpc_meta) : '—')}
+      ${row('CTR',         ctr.toFixed(2)+'%')}
+      ${row('ULC',         N(m.ulc),                                          'var(--text-muted)')}
+
+      <!-- Group 2: Leads -->
+      <div class="msect">
+        <div class="msect-dot" style="background:var(--cyan);"></div>
+        <div class="msect-label">Lead Funnel</div>
+      </div>
+      ${row('Leads',         N(s.leads),                                        color)}
+      ${row('Cost per Lead', s.leads>0  ? $m(cpl)    : '—')}
+      ${row('Contacts',      N(s.contacted),                                    'var(--cyan)')}
+      ${row('% Contacted',   contactRate.toFixed(1)+'%',                        'var(--cyan)')}
+      ${row('CR (Close Rate)', closeRate.toFixed(1)+'%',                        'var(--green)')}
+      ${row('$PC (Cost/Close)', s.closes>0 ? $m(dollarPC) : '—')}
+
+      <!-- Group 3: Sales -->
+      <div class="msect">
+        <div class="msect-dot" style="background:var(--green);"></div>
+        <div class="msect-label">Sales</div>
+      </div>
+      ${row('Closes',        N(s.closes),                                       'var(--green)')}
+      ${row('Gross Income (GI)', $0(s.income),                                 'var(--gold)')}
+      ${row('Gross Profit',  (grossProfit>=0?'':'−')+$0(Math.abs(grossProfit)), gpColor)}
+      ${row('ROAS',          roas>0 ? roas.toFixed(2)+'x' : '—',               roasColor)}
+
     </div>`;
 }
 
-// ── Conversion stages ────────────────────────────────────
+// ── Conversion stages ─────────────────────────────────────────
 function renderStages(oS, nS, oM, nM) {
   const stages = [
     { label:'Impressions', o:oM.impressions, n:nM.impressions },
-    { label:'Clicks',      o:oM.clicks,      n:nM.clicks },
+    { label:'ULC',         o:oM.ulc,         n:nM.ulc },
     { label:'Leads',       o:oS.leads,       n:nS.leads },
-    { label:'Contacted',   o:oS.contacted,   n:nS.contacted },
+    { label:'Contacts',    o:oS.contacted,   n:nS.contacted },
     { label:'Closes',      o:oS.closes,      n:nS.closes },
   ];
-  const maxVal = Math.max(...stages.map(s => Math.max(s.o, s.n)), 1);
+  const maxVal = Math.max(...stages.map(s=>Math.max(s.o,s.n)),1);
 
-  document.getElementById('stagesGrid').innerHTML = stages.map((s, i) => {
-    const oH = Math.max(6, (s.o / maxVal) * 90);
-    const nH = Math.max(6, (s.n / maxVal) * 90);
-    const prev = i > 0 ? stages[i-1] : null;
-    const oConv = prev && prev.o > 0 ? (100*s.o/prev.o).toFixed(0)+'%' : '';
-    const nConv = prev && prev.n > 0 ? (100*s.n/prev.n).toFixed(0)+'%' : '';
-
+  document.getElementById('stagesGrid').innerHTML = stages.map((s,i) => {
+    const oH = Math.max(6,(s.o/maxVal)*90);
+    const nH = Math.max(6,(s.n/maxVal)*90);
+    const prev = i>0 ? stages[i-1] : null;
+    const oConv = prev&&prev.o>0 ? (100*s.o/prev.o).toFixed(0)+'%' : '';
+    const nConv = prev&&prev.n>0 ? (100*s.n/prev.n).toFixed(0)+'%' : '';
     return `
       <div class="funnel-stage">
         <div class="funnel-stage-label">${s.label}</div>
         <div class="funnel-bars">
-          <div class="funnel-bar" style="height:${oH}px;background:linear-gradient(180deg,var(--optin),rgba(107,158,255,0.4));">
-            <div class="funnel-bar-tooltip" style="color:var(--optin);">${fmtK(s.o)}</div>
-          </div>
-          <div class="funnel-bar" style="height:${nH}px;background:linear-gradient(180deg,var(--nooptin),rgba(244,114,182,0.4));">
-            <div class="funnel-bar-tooltip" style="color:var(--nooptin);">${fmtK(s.n)}</div>
-          </div>
+          <div class="funnel-bar" style="height:${oH}px;background:linear-gradient(180deg,var(--optin),rgba(107,158,255,0.3));"></div>
+          <div class="funnel-bar" style="height:${nH}px;background:linear-gradient(180deg,var(--nooptin),rgba(244,114,182,0.3));"></div>
         </div>
         <div class="funnel-stage-data">
           <div class="funnel-stage-vals">
             <span class="funnel-stage-val" style="color:var(--optin);">${fmtK(s.o)}</span>
-            <span style="color:var(--text-dim);font-size:0.65rem;">/</span>
+            <span style="color:var(--text-dim);font-size:0.6rem;">/</span>
             <span class="funnel-stage-val" style="color:var(--nooptin);">${fmtK(s.n)}</span>
           </div>
-          ${oConv||nConv ? `<div class="funnel-conv">
-            ${oConv ? `<div class="funnel-conv-pct" style="color:var(--optin);">↳ ${oConv}</div>` : ''}
-            ${nConv ? `<div class="funnel-conv-pct" style="color:var(--nooptin);">↳ ${nConv}</div>` : ''}
-          </div>` : ''}
+          ${oConv||nConv?`<div class="funnel-conv">
+            ${oConv?`<span class="funnel-conv-pct" style="color:var(--optin);">↳${oConv}</span>`:''}
+            ${nConv?`<span class="funnel-conv-pct" style="color:var(--nooptin);">↳${nConv}</span>`:''}
+          </div>`:''}
         </div>
       </div>`;
   }).join('');
 }
 
-// ── Charts ───────────────────────────────────────────────
-function getChartColors() {
-  const isLight = document.body.classList.contains('light');
-  return {
-    grid:  isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-    tick:  isLight ? '#888' : '#454870',
-    tip:   isLight ? { bg:'#fff', border:'#dde2f0', title:'#12152a', body:'#515878' } : { bg:'#171a30', border:'#252842', title:'#e8eaf6', body:'#8890b5' },
-  };
-}
-
+// ── Charts ────────────────────────────────────────────────────
 function baseOpts(yFmt, y2Fmt) {
-  const c = getChartColors();
+  const isLight = document.body.classList.contains('light');
+  const grid = isLight?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.05)';
+  const tick = isLight?'#777':'#454870';
   const opts = {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode:'index', intersect:false },
-    animation: { duration: 600, easing: 'easeOutQuart' },
-    plugins: {
-      legend: { display:false },
-      tooltip: {
-        backgroundColor: c.tip.bg, borderColor: c.tip.border, borderWidth:1,
-        titleColor: c.tip.title, bodyColor: c.tip.body, padding:12, cornerRadius:10,
-      },
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    animation:{ duration:600, easing:'easeOutQuart' },
+    plugins:{
+      legend:{ display:false },
+      tooltip:{ backgroundColor:isLight?'#fff':'#171a30', borderColor:isLight?'#dde2f0':'#252842', borderWidth:1, titleColor:isLight?'#12152a':'#e8eaf6', bodyColor:isLight?'#515878':'#8890b5', padding:12, cornerRadius:10 },
     },
-    scales: {
-      x: { grid:{ color:c.grid }, ticks:{ color:c.tick, font:{size:10,family:'Inter'} } },
-      y: { grid:{ color:c.grid }, ticks:{ color:c.tick, font:{size:10,family:'Inter'}, callback: yFmt||undefined } },
+    scales:{
+      x:{ grid:{ color:grid }, ticks:{ color:tick, font:{size:10,family:'Inter'} } },
+      y:{ grid:{ color:grid }, ticks:{ color:tick, font:{size:10,family:'Inter'}, callback:yFmt||undefined } },
     },
   };
   if (y2Fmt) {
-    opts.scales.y2 = {
-      position:'right', grid:{ drawOnChartArea:false },
-      ticks:{ color:'rgba(107,158,255,0.7)', font:{size:10,family:'Inter'}, callback: y2Fmt },
-    };
+    opts.scales.y2 = { position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'rgba(52,211,153,0.7)', font:{size:10,family:'Inter'}, callback:y2Fmt } };
   }
   return opts;
 }
 
-function mkGradient(ctx, r, g, b) {
-  const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.clientHeight || 240);
-  gradient.addColorStop(0,   `rgba(${r},${g},${b},0.35)`);
-  gradient.addColorStop(0.7, `rgba(${r},${g},${b},0.08)`);
-  gradient.addColorStop(1,   `rgba(${r},${g},${b},0)`);
-  return gradient;
+function mkGrad(ctx, r, g, b) {
+  const grad = ctx.createLinearGradient(0,0,0,ctx.canvas.clientHeight||230);
+  grad.addColorStop(0,  `rgba(${r},${g},${b},0.35)`);
+  grad.addColorStop(0.7,`rgba(${r},${g},${b},0.08)`);
+  grad.addColorStop(1,  `rgba(${r},${g},${b},0)`);
+  return grad;
 }
 
 function mkChart(id, config) {
   if (charts[id]) charts[id].destroy();
-  const ctx = document.getElementById(id).getContext('2d');
-  charts[id] = new Chart(ctx, config);
-  return charts[id];
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), config);
 }
 
 function renderCharts(oSales, nSales, oM, nM) {
   const oByDate = sumSales(oSales).byDate;
   const nByDate = sumSales(nSales).byDate;
+  const allDates   = [...new Set([...Object.keys(oM.byDate),...Object.keys(nM.byDate)])].sort();
+  const salesDates = [...new Set([...Object.keys(oByDate),...Object.keys(nByDate)])].sort();
+  const lbl = d => { const [,m,day]=d.split('-'); return `${m}/${day}`; };
 
-  const allDates   = [...new Set([...Object.keys(oM.byDate), ...Object.keys(nM.byDate)])].sort();
-  const salesDates = [...new Set([...Object.keys(oByDate), ...Object.keys(nByDate)])].sort();
-  const lbl = d => { const [,m,day] = d.split('-'); return `${m}/${day}`; };
-
-  // ── Overview: spend bars + leads lines (dual axis)
-  const ovCtx = document.getElementById('overviewChart').getContext('2d');
-  mkChart('overviewChart', {
-    type: 'bar',
-    data: {
-      labels: allDates.map(lbl),
-      datasets: [
-        { label:'Opt-In Spend',    data:allDates.map(d=>oM.byDate[d]?.spend||0),    backgroundColor:'rgba(107,158,255,0.55)', borderRadius:3, borderSkipped:false, yAxisID:'y' },
-        { label:'No Opt-In Spend', data:allDates.map(d=>nM.byDate[d]?.spend||0),    backgroundColor:'rgba(244,114,182,0.55)', borderRadius:3, borderSkipped:false, yAxisID:'y' },
-        { label:'Opt-In Leads',    data:allDates.map(d=>oByDate[d]?.leads||0),       type:'line', borderColor:'var(--green)', backgroundColor:'transparent', borderWidth:2, pointRadius:2, pointHoverRadius:5, tension:0.4, yAxisID:'y2' },
-        { label:'No Opt-In Leads', data:allDates.map(d=>nByDate[d]?.leads||0),       type:'line', borderColor:'var(--gold)',  backgroundColor:'transparent', borderWidth:2, pointRadius:2, pointHoverRadius:5, tension:0.4, borderDash:[4,3], yAxisID:'y2' },
+  // Overview: spend bars + lead lines dual-axis
+  mkChart('overviewChart',{
+    type:'bar',
+    data:{
+      labels:allDates.map(lbl),
+      datasets:[
+        { label:'Opt-In Spend',    data:allDates.map(d=>oM.byDate[d]?.spend||0),  backgroundColor:'rgba(107,158,255,0.55)', borderRadius:3, borderSkipped:false, yAxisID:'y' },
+        { label:'No Opt-In Spend', data:allDates.map(d=>nM.byDate[d]?.spend||0),  backgroundColor:'rgba(244,114,182,0.55)', borderRadius:3, borderSkipped:false, yAxisID:'y' },
+        { label:'Opt-In Leads',    data:allDates.map(d=>oByDate[d]?.leads||0),    type:'line', borderColor:'var(--green)', backgroundColor:'transparent', borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4, yAxisID:'y2' },
+        { label:'No Opt-In Leads', data:allDates.map(d=>nByDate[d]?.leads||0),    type:'line', borderColor:'var(--gold)',  backgroundColor:'transparent', borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4, borderDash:[4,3], yAxisID:'y2' },
       ]
     },
-    options: baseOpts(v=>'$'+v.toLocaleString(), v=>v),
+    options:baseOpts(v=>'$'+v.toLocaleString(), v=>v),
   });
 
-  // ── Leads trend (smooth line with gradient fill)
+  // Leads line + gradient
   const lCtx = document.getElementById('leadsChart').getContext('2d');
-  mkChart('leadsChart', {
-    type: 'line',
-    data: {
-      labels: salesDates.map(lbl),
-      datasets: [
-        { label:'Opt-In',    data:salesDates.map(d=>oByDate[d]?.leads||0), borderColor:'var(--optin)',   backgroundColor:()=>mkGradient(lCtx,107,158,255), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.45 },
-        { label:'No Opt-In', data:salesDates.map(d=>nByDate[d]?.leads||0), borderColor:'var(--nooptin)', backgroundColor:()=>mkGradient(lCtx,244,114,182), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.45 },
+  mkChart('leadsChart',{
+    type:'line',
+    data:{
+      labels:salesDates.map(lbl),
+      datasets:[
+        { label:'Opt-In',    data:salesDates.map(d=>oByDate[d]?.leads||0), borderColor:'var(--optin)',   backgroundColor:()=>mkGrad(lCtx,107,158,255), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4 },
+        { label:'No Opt-In', data:salesDates.map(d=>nByDate[d]?.leads||0), borderColor:'var(--nooptin)', backgroundColor:()=>mkGrad(lCtx,244,114,182), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4 },
       ]
     },
-    options: baseOpts(),
+    options:baseOpts(),
   });
 
-  // ── Closes trend
+  // Closes line + gradient
   const cCtx = document.getElementById('closesChart').getContext('2d');
-  mkChart('closesChart', {
-    type: 'line',
-    data: {
-      labels: salesDates.map(lbl),
-      datasets: [
-        { label:'Opt-In',    data:salesDates.map(d=>oByDate[d]?.closes||0), borderColor:'var(--green)', backgroundColor:()=>mkGradient(cCtx,52,211,153),   fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.45 },
-        { label:'No Opt-In', data:salesDates.map(d=>nByDate[d]?.closes||0), borderColor:'var(--gold)',  backgroundColor:()=>mkGradient(cCtx,251,191,36),   fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.45 },
+  mkChart('closesChart',{
+    type:'line',
+    data:{
+      labels:salesDates.map(lbl),
+      datasets:[
+        { label:'Opt-In',    data:salesDates.map(d=>oByDate[d]?.closes||0), borderColor:'var(--green)', backgroundColor:()=>mkGrad(cCtx,52,211,153), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4 },
+        { label:'No Opt-In', data:salesDates.map(d=>nByDate[d]?.closes||0), borderColor:'var(--gold)',  backgroundColor:()=>mkGrad(cCtx,251,191,36), fill:true, borderWidth:2.5, pointRadius:2, pointHoverRadius:5, tension:0.4 },
       ]
     },
-    options: baseOpts(),
+    options:baseOpts(),
   });
 
-  // ── Cost comparison
+  // Cost comparison (CPL vs $PC)
   const oS = sumSales(oSales), nS = sumSales(nSales);
   const oCPL = oS.leads>0  ? oM.spend/oS.leads  : 0;
   const nCPL = nS.leads>0  ? nM.spend/nS.leads  : 0;
-  const oCPC = oS.closes>0 ? oM.spend/oS.closes : 0;
-  const nCPC = nS.closes>0 ? nM.spend/nS.closes : 0;
-  mkChart('costChart', {
-    type: 'bar',
-    data: {
-      labels: ['Cost / Lead', 'Cost / Close'],
-      datasets: [
-        { label:'Opt-In',    data:[oCPL, oCPC], backgroundColor:'rgba(107,158,255,0.8)', borderRadius:7, borderSkipped:false },
-        { label:'No Opt-In', data:[nCPL, nCPC], backgroundColor:'rgba(244,114,182,0.8)', borderRadius:7, borderSkipped:false },
+  const oPC  = oS.closes>0 ? oM.spend/oS.closes : 0;
+  const nPC  = nS.closes>0 ? nM.spend/nS.closes : 0;
+  mkChart('costChart',{
+    type:'bar',
+    data:{
+      labels:['Cost / Lead', 'Cost / Close ($PC)'],
+      datasets:[
+        { label:'Opt-In',    data:[oCPL, oPC], backgroundColor:'rgba(107,158,255,0.8)', borderRadius:7, borderSkipped:false },
+        { label:'No Opt-In', data:[nCPL, nPC], backgroundColor:'rgba(244,114,182,0.8)', borderRadius:7, borderSkipped:false },
       ]
     },
-    options: baseOpts(v=>'$'+v.toFixed(0)),
+    options:baseOpts(v=>'$'+v.toFixed(0)),
   });
 
-  // ── Revenue vs Spend
-  mkChart('roasChart', {
-    type: 'bar',
-    data: {
-      labels: ['Opt-In', 'No Opt-In'],
-      datasets: [
-        { label:'Revenue',  data:[oS.income, nS.income], backgroundColor:'rgba(52,211,153,0.8)',  borderRadius:7, borderSkipped:false },
-        { label:'Ad Spend', data:[oM.spend,  nM.spend],  backgroundColor:'rgba(251,191,36,0.75)', borderRadius:7, borderSkipped:false },
+  // GI vs Spend
+  mkChart('roasChart',{
+    type:'bar',
+    data:{
+      labels:['Opt-In','No Opt-In'],
+      datasets:[
+        { label:'Gross Income', data:[oS.income,nS.income], backgroundColor:'rgba(52,211,153,0.8)',  borderRadius:7, borderSkipped:false },
+        { label:'Ad Spend',     data:[oM.spend, nM.spend],  backgroundColor:'rgba(251,191,36,0.75)', borderRadius:7, borderSkipped:false },
       ]
     },
-    options: baseOpts(v=>'$'+Math.round(v).toLocaleString()),
+    options:baseOpts(v=>'$'+Math.round(v).toLocaleString()),
   });
 }
 
-// ── Compare table ────────────────────────────────────────
+// ── Comparison table ──────────────────────────────────────────
 function renderCompare(oS, nS, oM, nM) {
-  const oCPL  = oS.leads>0  ? oM.spend/oS.leads  : Infinity;
-  const nCPL  = nS.leads>0  ? nM.spend/nS.leads  : Infinity;
-  const oCPC  = oS.closes>0 ? oM.spend/oS.closes : Infinity;
-  const nCPC  = nS.closes>0 ? nM.spend/nS.closes : Infinity;
-  const oROAS = oM.spend>0  ? oS.income/oM.spend : 0;
-  const nROAS = nM.spend>0  ? nS.income/nM.spend : 0;
-  const oCTR  = oM.impressions>0 ? oM.clicks/oM.impressions*100 : 0;
-  const nCTR  = nM.impressions>0 ? nM.clicks/nM.impressions*100 : 0;
-  const oCPM  = oM.impressions>0 ? oM.spend/oM.impressions*1000 : 0;
-  const nCPM  = nM.impressions>0 ? nM.spend/nM.impressions*1000 : 0;
+  const oCPC_meta = oM.clicks>0       ? oM.spend/oM.clicks         : 0;
+  const nCPC_meta = nM.clicks>0       ? nM.spend/nM.clicks         : 0;
+  const oCTR      = oM.impressions>0  ? oM.clicks/oM.impressions*100 : 0;
+  const nCTR      = nM.impressions>0  ? nM.clicks/nM.impressions*100 : 0;
+  const oCPL      = oS.leads>0        ? oM.spend/oS.leads          : Infinity;
+  const nCPL      = nS.leads>0        ? nM.spend/nS.leads          : Infinity;
+  const oConRate  = oS.leads>0        ? oS.contacted/oS.leads      : 0;
+  const nConRate  = nS.leads>0        ? nS.contacted/nS.leads      : 0;
+  const oCR       = oS.leads>0        ? oS.closes/oS.leads         : 0;
+  const nCR       = nS.leads>0        ? nS.closes/nS.leads         : 0;
+  const oPC       = oS.closes>0       ? oM.spend/oS.closes         : Infinity;
+  const nPC       = nS.closes>0       ? nM.spend/nS.closes         : Infinity;
+  const oROAS     = oM.spend>0        ? oS.income/oM.spend         : 0;
+  const nROAS     = nM.spend>0        ? nS.income/nM.spend         : 0;
+  const oGP       = oS.income - oM.spend;
+  const nGP       = nS.income - nM.spend;
 
-  const rows = [
-    { label:'Ad Spend',      ov:$m(oM.spend),       nv:$m(nM.spend),         oWin: oM.spend <= nM.spend,        lower:true  },
-    { label:'Impressions',   ov:N(oM.impressions),   nv:N(nM.impressions),    oWin: oM.impressions >= nM.impressions },
-    { label:'Clicks',        ov:N(oM.clicks),         nv:N(nM.clicks),         oWin: oM.clicks >= nM.clicks },
-    { label:'CTR',           ov:oCTR.toFixed(2)+'%', nv:nCTR.toFixed(2)+'%', oWin: oCTR >= nCTR },
-    { label:'CPM',           ov:$m(oCPM),             nv:$m(nCPM),             oWin: oCPM <= nCPM, lower:true },
-    { label:'Leads',         ov:N(oS.leads),           nv:N(nS.leads),          oWin: oS.leads >= nS.leads },
-    { label:'Cost / Lead',   ov:oCPL<Infinity?$m(oCPL):'—', nv:nCPL<Infinity?$m(nCPL):'—', oWin: oCPL <= nCPL, lower:true },
-    { label:'Contact Rate',  ov:P(oS.contacted,oS.leads), nv:P(nS.contacted,nS.leads), oWin: oS.leads>0&&nS.leads>0?oS.contacted/oS.leads>=nS.contacted/nS.leads:oS.leads>0 },
-    { label:'Closes',        ov:N(oS.closes),          nv:N(nS.closes),         oWin: oS.closes >= nS.closes },
-    { label:'Close Rate',    ov:P(oS.closes,oS.leads), nv:P(nS.closes,nS.leads),oWin: oS.leads>0&&nS.leads>0?oS.closes/oS.leads>=nS.closes/nS.leads:oS.leads>0 },
-    { label:'Cost / Close',  ov:oCPC<Infinity?$m(oCPC):'—', nv:nCPC<Infinity?$m(nCPC):'—', oWin: oCPC <= nCPC, lower:true },
-    { label:'Gross Income',  ov:$0(oS.income),         nv:$0(nS.income),        oWin: oS.income >= nS.income },
-    { label:'ROAS',          ov:oROAS.toFixed(2)+'x', nv:nROAS.toFixed(2)+'x', oWin: oROAS >= nROAS },
-  ];
-
-  document.getElementById('compareTbody').innerHTML = rows.map(r => `
+  const fmt = (v,inf) => v===Infinity||v===0&&inf?'—':v;
+  const sect = label => `<tr class="tbl-sect"><td colspan="4">${label}</td></tr>`;
+  const row  = (label,ov,nv,oWin) => `
     <tr>
-      <td class="td-label">${r.label}</td>
-      <td class="${r.oWin?'win':'lose'}">${r.ov}</td>
-      <td class="${!r.oWin?'win':'lose'}">${r.nv}</td>
-      <td><span class="win-badge" style="background:${r.oWin?'rgba(107,158,255,0.12)':'rgba(244,114,182,0.12)'};color:${r.oWin?'var(--optin)':'var(--nooptin)'};">${r.oWin?'🔵 Opt-In':'🩷 No Opt-In'}</span></td>
-    </tr>`).join('');
+      <td class="td-label">${label}</td>
+      <td class="${oWin?'win':'lose'}">${ov}</td>
+      <td class="${!oWin?'win':'lose'}">${nv}</td>
+      <td><span class="win-badge" style="background:${oWin?'rgba(107,158,255,0.1)':'rgba(244,114,182,0.1)'};color:${oWin?'var(--optin)':'var(--nooptin)'};">${oWin?'🔵 Opt-In':'🩷 No Opt-In'}</span></td>
+    </tr>`;
+
+  document.getElementById('compareTbody').innerHTML = [
+    sect('📡 Ad Performance'),
+    row('Ad Spend',   $m(oM.spend),        $m(nM.spend),        oM.spend<=nM.spend),
+    row('Impressions',N(oM.impressions),    N(nM.impressions),   oM.impressions>=nM.impressions),
+    row('CPC',        oM.clicks>0?$m(oCPC_meta):'—', nM.clicks>0?$m(nCPC_meta):'—', oCPC_meta<=nCPC_meta),
+    row('CTR',        oCTR.toFixed(2)+'%', nCTR.toFixed(2)+'%', oCTR>=nCTR),
+    row('ULC',        N(oM.ulc),           N(nM.ulc),           oM.ulc>=nM.ulc),
+
+    sect('📋 Lead Funnel'),
+    row('Leads',        N(oS.leads),               N(nS.leads),               oS.leads>=nS.leads),
+    row('Cost / Lead',  oCPL<Infinity?$m(oCPL):'—',nCPL<Infinity?$m(nCPL):'—', oCPL<=nCPL),
+    row('Contacts',     N(oS.contacted),            N(nS.contacted),            oS.contacted>=nS.contacted),
+    row('% Contacted',  P(oS.contacted,oS.leads),  P(nS.contacted,nS.leads),  oConRate>=nConRate),
+    row('CR (Close Rate)', P(oS.closes,oS.leads),  P(nS.closes,nS.leads),     oCR>=nCR),
+    row('$PC (Cost/Close)', oPC<Infinity?$m(oPC):'—', nPC<Infinity?$m(nPC):'—', oPC<=nPC),
+
+    sect('💰 Sales'),
+    row('Closes',        N(oS.closes),      N(nS.closes),       oS.closes>=nS.closes),
+    row('Gross Income',  $0(oS.income),     $0(nS.income),      oS.income>=nS.income),
+    row('Gross Profit',  $0(oGP),           $0(nGP),            oGP>=nGP),
+    row('ROAS',          oROAS.toFixed(2)+'x', nROAS.toFixed(2)+'x', oROAS>=nROAS),
+  ].join('');
 }
 
-// ── Events ───────────────────────────────────────────────
+// ── Events ────────────────────────────────────────────────────
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const email    = document.getElementById('email').value.trim();
@@ -941,7 +954,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     onAuthed(data.session);
   } catch(err) {
     errEl.textContent = err.message || 'Invalid credentials';
-  } finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+  } finally { btn.disabled=false; btn.textContent='Sign In'; }
 });
 
 document.getElementById('signOutBtn').addEventListener('click', async () => {
