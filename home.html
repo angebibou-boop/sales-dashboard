@@ -464,39 +464,54 @@ document.getElementById('refreshUsersBtn').addEventListener('click', loadAdminUs
 
 // ── Auth ──────────────────────────────────────────────────────
 async function initAuth() {
-  const { data: { session } } = await supa.auth.getSession();
-  if (session) { onAuthed(session); return; }
-  setState('login');
+  // Safety net: if nothing resolves in 8s, drop to login
+  const timeout = setTimeout(() => setState('login'), 8000);
+  try {
+    const { data: { session }, error } = await supa.auth.getSession();
+    clearTimeout(timeout);
+    if (error) throw error;
+    if (session) { onAuthed(session); return; }
+    setState('login');
+  } catch(e) {
+    clearTimeout(timeout);
+    console.error('Auth init error:', e);
+    setState('login');
+  }
   supa.auth.onAuthStateChange((_e, sess) => { if (sess) onAuthed(sess); else setState('login'); });
 }
 
 async function onAuthed(session) {
-  session_ = session;
-  const email = session.user.email || '';
+  try {
+    session_ = session;
+    const email = session.user.email || '';
 
-  document.getElementById('userEmail').textContent = email;
-  document.getElementById('userAvatar').textContent = (email[0] || 'U').toUpperCase();
+    document.getElementById('userEmail').textContent = email;
+    document.getElementById('userAvatar').textContent = (email[0] || 'U').toUpperCase();
 
-  // Greeting
-  const now = new Date();
-  const hr  = now.getHours();
-  document.getElementById('greetTime').textContent = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
-  const name = email.split('@')[0].split(/[._]/)[0];
-  document.getElementById('firstName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    // Greeting
+    const now = new Date();
+    const hr  = now.getHours();
+    document.getElementById('greetTime').textContent = hr < 12 ? 'morning' : hr < 17 ? 'afternoon' : 'evening';
+    const name = email.split('@')[0].split(/[._]/)[0];
+    document.getElementById('firstName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
 
-  // Date
-  document.getElementById('fullDate').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    // Date
+    document.getElementById('fullDate').textContent = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
 
-  const isAdmin = session.user.app_metadata?.is_admin ?? false;
-  const perms   = session.user.app_metadata?.permissions ?? [];
+    const isAdmin = session.user.app_metadata?.is_admin ?? false;
+    const perms   = session.user.app_metadata?.permissions ?? [];
 
-  renderBoards(isAdmin, perms);
+    renderBoards(isAdmin, perms);
 
-  if (isAdmin) {
-    document.getElementById('adminSection').style.display = 'block';
+    if (isAdmin) {
+      document.getElementById('adminSection').style.display = 'block';
+    }
+
+    setState('dashboard');
+  } catch(e) {
+    console.error('onAuthed error:', e);
+    setState('login');
   }
-
-  setState('dashboard');
 }
 
 // ── Boards ────────────────────────────────────────────────────
@@ -663,7 +678,7 @@ document.getElementById('signOutBtn').addEventListener('click', async () => {
 });
 
 setState('loading');
-initAuth();
+initAuth().catch(e => { console.error('Unhandled auth error:', e); setState('login'); });
 </script>
 </body>
 </html>
