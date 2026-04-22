@@ -150,8 +150,7 @@
     box-shadow: 0 16px 48px rgba(0,0,0,0.5);
     z-index: 200;
   }
-  .nav-dropdown:hover .nav-dropdown-menu,
-  .nav-dropdown-menu:hover { display: block; }
+  .nav-dropdown-menu.open { display: block; }
   .nav-dropdown-item {
     display: block; padding: 9px 13px; font-size: 0.78rem; font-weight: 600;
     color: var(--text-muted); text-decoration: none; border-radius: 9px;
@@ -172,6 +171,16 @@
 
   /* ── Controls row ─────────────────────────────── */
   .controls-row { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+  .platform-select {
+    background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border);
+    border-radius: 8px; padding: 5px 30px 5px 10px; font-size: 0.74rem; font-weight: 600;
+    cursor: pointer; outline: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237880a8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 8px center;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .platform-select:hover { border-color: var(--border-light); color: var(--text); }
+  .platform-select option { background: var(--surface); color: var(--text); }
 
   /* Pill tab group */
   .pill-tabs {
@@ -391,12 +400,12 @@
     <button class="tbtn tbtn-ghost" id="themeBtn" style="font-size:1rem;padding:5px 10px;" title="Toggle theme"></button>
 
     <!-- Nav dropdown -->
-    <div class="nav-dropdown">
-      <button class="tbtn tbtn-ghost">
+    <div class="nav-dropdown" id="navDropdown">
+      <button class="tbtn tbtn-ghost" id="navDropdownBtn">
         Dashboards
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
-      <div class="nav-dropdown-menu">
+      <div class="nav-dropdown-menu" id="navDropdownMenu">
         <a class="nav-dropdown-item" href="home.html">🏠 Home</a>
         <a class="nav-dropdown-item" href="index.html">📈 Sales</a>
         <a class="nav-dropdown-item" href="meta-ads.html">📣 Meta Ads</a>
@@ -432,6 +441,18 @@
       <div class="pill-tabs" id="productTabs">
         <!-- populated by JS -->
       </div>
+
+      <!-- Platform filter -->
+      <select id="platformSelect" class="platform-select">
+        <option value="">All Platforms</option>
+        <option value="Thrivecart">Thrivecart</option>
+        <option value="Kajabi">Kajabi</option>
+        <option value="Copecart">Copecart</option>
+        <option value="Concert">Concert</option>
+        <option value="NMI Direct">NMI Direct</option>
+        <option value="Whop">Whop</option>
+        <option value="Wire">Wire</option>
+      </select>
     </div>
 
     <!-- Stats View -->
@@ -446,7 +467,7 @@
       <div class="kpi-grid" id="kpiGrid">
         <!-- populated by JS -->
         <div class="board-card" style="--c-color:var(--green);--c-glow:var(--green-glow);">
-          <div class="kpi-label">Sales</div>
+          <div class="kpi-label">Cash Sales</div>
           <div class="kpi-value" id="kpi-sale-rev">—</div>
           <div class="kpi-sub" id="kpi-sale-count">— transactions</div>
         </div>
@@ -488,6 +509,24 @@
         </div>
       </div>
 
+      <!-- Comparison chart -->
+      <div class="sec-label" style="margin-top:28px;">
+        <span class="sec-label-text">Daily Comparison</span>
+        <div class="sec-label-line"></div>
+      </div>
+      <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="chart-card-title" style="margin:0;" id="comparisonChartTitle">Cash Sales Per Day — vs Same Days Last Month</div>
+          <div style="display:flex;gap:6px;">
+            <button id="cmpMonthBtn" class="tbtn tbtn-ghost" style="font-size:0.72rem;padding:5px 11px;">Month</button>
+            <button id="cmpWeekBtn"  class="tbtn tbtn-ghost" style="font-size:0.72rem;padding:5px 11px;">Week</button>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+
       <!-- Summary table (all products only) -->
       <div id="summaryTableSection">
         <div class="sec-label">
@@ -504,8 +543,8 @@
               <thead>
                 <tr>
                   <th>Product</th>
-                  <th class="td-num">Sales #</th>
-                  <th class="td-num">Sales $</th>
+                  <th class="td-num">Cash Sales #</th>
+                  <th class="td-num">Cash Sales $</th>
                   <th class="td-num">Rebills #</th>
                   <th class="td-num">Rebills $</th>
                   <th class="td-num">PP #</th>
@@ -580,8 +619,11 @@ let activeView      = 'stats';
 let statsData       = null;
 let logData         = null;
 let currentSession  = null;
-let revenueChartInst  = null;
-let breakdownChartInst = null;
+let revenueChartInst    = null;
+let breakdownChartInst  = null;
+let comparisonChartInst = null;
+let compareMode         = 'month'; // 'month' | 'week'
+let activePlatform      = '';      // '' = all, otherwise exact platform name
 let logSortCol      = 'Date';
 let logSortDir      = 'desc';
 let logRawData      = [];
@@ -748,7 +790,8 @@ async function loadData() {
   const to   = document.getElementById('dateTo').value;
 
   // Build the filter suffix: ilike takes priority (Nashville), then exact products, then nothing (all)
-  const filterSuffix = ilikeParam ? `&ilike=${ilikeParam}` : (productsParam ? `&products=${productsParam}` : '');
+  const platformSuffix = activePlatform ? `&platform=${encodeURIComponent(activePlatform)}` : '';
+  const filterSuffix = (ilikeParam ? `&ilike=${ilikeParam}` : (productsParam ? `&products=${productsParam}` : '')) + platformSuffix;
 
   setRefreshing(true);
 
@@ -828,6 +871,9 @@ function renderStats() {
   // Revenue chart
   renderRevenueChart(daily || []);
 
+  // Comparison chart (async, non-blocking)
+  loadComparisonChart();
+
   // Breakdown chart
   if (activeProduct === 'all') {
     document.getElementById('summaryTableSection').style.display = 'block';
@@ -864,7 +910,7 @@ function renderRevenueChart(daily) {
     data: {
       labels,
       datasets: [
-        { label: 'Sales',    data: saleData,   borderColor: '#34d399', backgroundColor: greenGrad,  borderWidth: 2, pointRadius: 2, tension: 0.35, fill: true },
+        { label: 'Cash Sales', data: saleData,  borderColor: '#34d399', backgroundColor: greenGrad,  borderWidth: 2, pointRadius: 2, tension: 0.35, fill: true },
         { label: 'Rebills',  data: rebillData, borderColor: '#6b9eff', backgroundColor: blueGrad,   borderWidth: 2, pointRadius: 2, tension: 0.35, fill: true },
         { label: 'Pay Plans',data: ppData,     borderColor: '#a78bfa', backgroundColor: purpleGrad, borderWidth: 2, pointRadius: 2, tension: 0.35, fill: true },
       ],
@@ -950,7 +996,7 @@ function renderBreakdownDoughnut(overall) {
   breakdownChartInst = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Sales', 'Rebills', 'Payment Plans'],
+      labels: ['Cash Sales', 'Rebills', 'Payment Plans'],
       datasets: [{
         data: [sale, rebill, pp],
         backgroundColor: ['rgba(52,211,153,0.8)', 'rgba(107,158,255,0.8)', 'rgba(167,139,250,0.8)'],
@@ -1004,6 +1050,115 @@ function renderSummaryTable(byProduct) {
       <td class="td-money" style="color:var(--gold);">${fmtMoney(totalRev)}</td>
     </tr>`;
   }).join('');
+}
+
+// ── Comparison chart ─────────────────────────────────────────────
+async function loadComparisonChart() {
+  const days = compareMode === 'week' ? 7 : 30;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Current period: last N days ending today
+  const currTo   = new Date(today);
+  const currFrom = new Date(today - days * 86400000);
+
+  // Previous period: the N days before that
+  const prevTo   = new Date(today - days * 86400000);
+  const prevFrom = new Date(today - days * 2 * 86400000);
+
+  const fmt = d => d.toISOString().slice(0, 10);
+
+  // Get the active product filter suffix (same as loadData)
+  const group = PRODUCT_GROUPS.find(g => g.id === activeProduct);
+  const productsParam = group.matches ? encodeURIComponent(group.matches.join(',')) : '';
+  const ilikeParam    = group.ilike   ? encodeURIComponent(group.ilike)             : '';
+  const platformSuffix2 = activePlatform ? `&platform=${encodeURIComponent(activePlatform)}` : '';
+  const filterSuffix  = (ilikeParam ? `&ilike=${ilikeParam}` : (productsParam ? `&products=${productsParam}` : '')) + platformSuffix2;
+
+  const { data: { session: s } } = await supa.auth.getSession();
+  if (!s) return;
+  const hdrs = { Authorization: 'Bearer ' + s.access_token };
+
+  try {
+    const [currRes, prevRes] = await Promise.all([
+      fetch(`${INCOME_BASE}?api=stats&from=${fmt(currFrom)}&to=${fmt(currTo)}${filterSuffix}`, { headers: hdrs }),
+      fetch(`${INCOME_BASE}?api=stats&from=${fmt(prevFrom)}&to=${fmt(prevTo)}${filterSuffix}`, { headers: hdrs }),
+    ]);
+    if (!currRes.ok || !prevRes.ok) return;
+    const [currData, prevData] = await Promise.all([currRes.json(), prevRes.json()]);
+
+    // Build lookup: date → cash sales revenue
+    const currMap = {};
+    for (const d of (currData.daily || [])) currMap[d.date] = Number(d.sale || 0);
+    const prevMap = {};
+    for (const d of (prevData.daily || [])) prevMap[d.date] = Number(d.sale || 0);
+
+    // Generate N day labels + values aligned by offset
+    const labels = [], currVals = [], prevVals = [];
+    for (let i = 0; i < days; i++) {
+      const cDate = new Date(currFrom.getTime() + i * 86400000);
+      const pDate = new Date(prevFrom.getTime() + i * 86400000);
+      const cKey  = cDate.toISOString().slice(0, 10);
+      const pKey  = pDate.toISOString().slice(0, 10);
+      labels.push(cDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+      currVals.push(currMap[cKey] || 0);
+      prevVals.push(prevMap[pKey] || 0);
+    }
+
+    renderComparisonChart(labels, currVals, prevVals, fmt(prevFrom), fmt(prevTo));
+  } catch(e) { console.error('Comparison chart error:', e); }
+}
+
+function renderComparisonChart(labels, currVals, prevVals, prevFrom, prevTo) {
+  const canvas = document.getElementById('comparisonChart');
+  const ctx = canvas.getContext('2d');
+  if (comparisonChartInst) { comparisonChartInst.destroy(); comparisonChartInst = null; }
+
+  // Format the period label for the legend
+  const fmtShort = d => new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const prevLabel = `vs ${fmtShort(prevFrom)} – ${fmtShort(prevTo)}`;
+
+  comparisonChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'This Period',
+          data: currVals,
+          borderColor: '#34d399',
+          backgroundColor: 'rgba(52,211,153,0.12)',
+          borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5,
+          tension: 0.35, fill: true,
+        },
+        {
+          label: prevLabel,
+          data: prevVals,
+          borderColor: '#6b9eff',
+          backgroundColor: 'rgba(107,158,255,0.07)',
+          borderWidth: 2, borderDash: [5, 4],
+          pointRadius: 2, pointHoverRadius: 4,
+          tension: 0.35, fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#7880a8', font: { size: 11 }, boxWidth: 12 } },
+        tooltip: {
+          backgroundColor: '#0f1120', borderColor: '#1f2438', borderWidth: 1,
+          titleColor: '#eaecf8', bodyColor: '#7880a8',
+          callbacks: { label: c => ` ${c.dataset.label}: ${fmtMoney(c.parsed.y)}` },
+        },
+      },
+      scales: {
+        x: { ticks: { color: '#3e4668', font: { size: 10 }, maxRotation: 45 }, grid: { color: 'rgba(31,36,56,0.8)' } },
+        y: { ticks: { color: '#3e4668', font: { size: 10 }, callback: v => fmtMoney(v) }, grid: { color: 'rgba(31,36,56,0.8)' } },
+      },
+    },
+  });
 }
 
 // ── Log render ───────────────────────────────────────────────────
@@ -1107,6 +1262,13 @@ document.getElementById('productTabs').addEventListener('click', e => {
 document.getElementById('dateFrom').addEventListener('change', () => { statsData = null; logData = null; if (currentSession) loadData(); });
 document.getElementById('dateTo').addEventListener('change',   () => { statsData = null; logData = null; if (currentSession) loadData(); });
 
+// Platform filter
+document.getElementById('platformSelect').addEventListener('change', (e) => {
+  activePlatform = e.target.value;
+  statsData = null; logData = null;
+  if (currentSession) loadData();
+});
+
 // Refresh button
 document.getElementById('refreshBtn').addEventListener('click', () => {
   statsData = null; logData = null;
@@ -1149,12 +1311,37 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
 document.getElementById('signOutBtn').addEventListener('click', async () => {
   await supa.auth.signOut(); setState('login');
 });
+
+// Comparison chart toggle
+function setCmpMode(mode) {
+  compareMode = mode;
+  const titleEl = document.getElementById('comparisonChartTitle');
+  if (titleEl) titleEl.textContent = mode === 'week'
+    ? 'Cash Sales Per Day — vs Same Days Last Week'
+    : 'Cash Sales Per Day — vs Same Days Last Month';
+  document.getElementById('cmpMonthBtn').style.background = mode === 'month' ? 'var(--surface3)' : '';
+  document.getElementById('cmpWeekBtn').style.background  = mode === 'week'  ? 'var(--surface3)' : '';
+  loadComparisonChart();
+}
+document.getElementById('cmpMonthBtn').addEventListener('click', () => setCmpMode('month'));
+document.getElementById('cmpWeekBtn').addEventListener('click',  () => setCmpMode('week'));
+
+// Nav dropdown — click to open/close, click outside to close
+document.getElementById('navDropdownBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.getElementById('navDropdownMenu').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  document.getElementById('navDropdownMenu').classList.remove('open');
+});
 document.getElementById('deniedSignOutBtn').addEventListener('click', async () => {
   await supa.auth.signOut(); setState('login');
 });
 
 // ── Boot ─────────────────────────────────────────────────────────
 setState('loading');
+// Set default active state on comparison toggle buttons once DOM is ready
+document.getElementById('cmpMonthBtn').style.background = 'var(--surface3)';
 initAuth().catch(e => { console.error('Unhandled auth error:', e); setState('login'); });
 </script>
 </body>
