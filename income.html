@@ -571,7 +571,7 @@ const PRODUCT_GROUPS = [
   { id: 'piano',       label: 'Piano Masterclass',    color: '#34d399', glow: 'rgba(52,211,153,0.2)',   matches: ['The Complete Piano Masterclass Bundle'] },
   { id: 'mentorship',  label: 'Private Mentorship',   color: '#a78bfa', glow: 'rgba(167,139,250,0.2)',  matches: ['Private Mentorship'] },
   { id: 'christmas',   label: 'Christmas Course',     color: '#fbbf24', glow: 'rgba(251,191,36,0.2)',   matches: ['Christmas Course'] },
-  { id: 'nashville',   label: 'Nashville Experience', color: '#f472b6', glow: 'rgba(244,114,182,0.2)',  matches: ['A Luxury Music Retreat in Nashville'] },
+  { id: 'nashville',   label: 'Nashville Experience', color: '#f472b6', glow: 'rgba(244,114,182,0.2)',  matches: null, ilike: 'Nashville' },
 ];
 
 // ── State ───────────────────────────────────────────────────────
@@ -743,8 +743,12 @@ function setupRealtime() {
 async function loadData() {
   const group = PRODUCT_GROUPS.find(g => g.id === activeProduct);
   const productsParam = group.matches ? encodeURIComponent(group.matches.join(',')) : '';
+  const ilikeParam    = group.ilike   ? encodeURIComponent(group.ilike)             : '';
   const from = document.getElementById('dateFrom').value;
   const to   = document.getElementById('dateTo').value;
+
+  // Build the filter suffix: ilike takes priority (Nashville), then exact products, then nothing (all)
+  const filterSuffix = ilikeParam ? `&ilike=${ilikeParam}` : (productsParam ? `&products=${productsParam}` : '');
 
   setRefreshing(true);
 
@@ -756,7 +760,7 @@ async function loadData() {
     const authHeader = { Authorization: 'Bearer ' + freshSession.access_token };
 
     if (activeView === 'stats') {
-      const url = `${INCOME_BASE}?api=stats&from=${from}&to=${to}` + (productsParam ? `&products=${productsParam}` : '');
+      const url = `${INCOME_BASE}?api=stats&from=${from}&to=${to}${filterSuffix}`;
       const res = await fetch(url, { headers: authHeader });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -765,7 +769,7 @@ async function loadData() {
       statsData = await res.json();
       renderStats();
     } else {
-      const url = `${INCOME_BASE}?api=log&from=${from}&to=${to}` + (productsParam ? `&products=${productsParam}` : '');
+      const url = `${INCOME_BASE}?api=log&from=${from}&to=${to}${filterSuffix}`;
       const res = await fetch(url, { headers: authHeader });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
