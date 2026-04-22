@@ -749,9 +749,15 @@ async function loadData() {
   setRefreshing(true);
 
   try {
+    // Always get a fresh session so the token is never stale/expired
+    const { data: { session: freshSession }, error: sessErr } = await supa.auth.getSession();
+    if (sessErr || !freshSession) { setState('login'); return; }
+    currentSession = freshSession;
+    const authHeader = { Authorization: 'Bearer ' + freshSession.access_token };
+
     if (activeView === 'stats') {
       const url = `${INCOME_BASE}?api=stats&from=${from}&to=${to}` + (productsParam ? `&products=${productsParam}` : '');
-      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + currentSession.access_token } });
+      const res = await fetch(url, { headers: authHeader });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || `HTTP ${res.status}`);
@@ -760,7 +766,7 @@ async function loadData() {
       renderStats();
     } else {
       const url = `${INCOME_BASE}?api=log&from=${from}&to=${to}` + (productsParam ? `&products=${productsParam}` : '');
-      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + currentSession.access_token } });
+      const res = await fetch(url, { headers: authHeader });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j.error || `HTTP ${res.status}`);
