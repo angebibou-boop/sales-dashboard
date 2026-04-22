@@ -842,9 +842,9 @@ function renderRevenueChart(daily) {
     const dt = new Date(d.date + 'T00:00:00');
     return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   });
-  const saleData   = daily.map(d => Number(d.sale?.revenue   || 0));
-  const rebillData = daily.map(d => Number(d.rebill?.revenue || 0));
-  const ppData     = daily.map(d => Number(d.pp?.revenue     || 0));
+  const saleData   = daily.map(d => Number(d.sale   || 0));
+  const rebillData = daily.map(d => Number(d.rebill || 0));
+  const ppData     = daily.map(d => Number(d.pp     || 0));
 
   const canvas = document.getElementById('revenueChart');
   const ctx = canvas.getContext('2d');
