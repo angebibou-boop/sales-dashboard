@@ -440,7 +440,30 @@
         <div class="admin-pane" id="pane-rep-map">
           <div class="users-head">
             <div class="users-count" id="repMapCount">Loading…</div>
-            <button class="save-btn" id="refreshRepMapBtn" style="font-size:0.7rem;">↻ Refresh</button>
+            <div style="display:flex;gap:8px;">
+              <button class="save-btn" id="addRepBtn" style="font-size:0.7rem;background:rgba(34,211,238,0.1);border-color:rgba(34,211,238,0.25);color:var(--cyan);">+ Add Rep</button>
+              <button class="save-btn" id="refreshRepMapBtn" style="font-size:0.7rem;">↻ Refresh</button>
+            </div>
+          </div>
+          <!-- Add new rep form (hidden by default) -->
+          <div id="addRepForm" style="display:none;margin-bottom:16px;padding:16px;background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.2);border-radius:14px;">
+            <div style="font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.1em;color:var(--cyan);margin-bottom:12px;">New Rep Profile</div>
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+              <div class="rep-map-field" style="flex:1;min-width:160px;">
+                <label>Calls Log Name <span style="font-weight:400;text-transform:none;">(exact match)</span></label>
+                <input class="aff-input" id="newRepCallsName" list="callsRepsList" placeholder="e.g. Jordin" autocomplete="off">
+                <datalist id="callsRepsList"></datalist>
+              </div>
+              <div class="rep-map-field aff-input-wrap" style="flex:2;min-width:200px;">
+                <label>Sales Affiliates <span style="font-weight:400;text-transform:none;">(comma-separated)</span></label>
+                <input class="aff-input" id="newRepAffiliates" placeholder="e.g. Jordin Pedlar, jordin pedlar">
+              </div>
+              <div style="display:flex;gap:6px;padding-bottom:1px;">
+                <button class="invite-btn" id="createRepBtn" style="padding:8px 16px;font-size:0.78rem;">Create</button>
+                <button class="save-btn" id="cancelAddRepBtn">Cancel</button>
+              </div>
+            </div>
+            <div class="feedback" id="addRepFeedback" style="margin-top:8px;"></div>
           </div>
           <!-- Unassigned callout -->
           <div id="unassignedCallout" style="display:none;margin-bottom:18px;padding:14px 16px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);border-radius:14px;">
@@ -764,10 +787,56 @@ document.getElementById('signOutBtn').addEventListener('click', async () => {
   await supa.auth.signOut(); setState('login');
 });
 
-// ── Rep Mapping ───────────────────────────────────────────────
-let repMapNames = { allCallsReps: [], allAffiliates: [], unassignedCallsReps: [], unassignedAffiliates: [] };
+// ── Rep Mapping (profile-centric) ────────────────────────────
+let repMapAllUsers = []; // all user accounts for the "linked user" dropdown
 
 document.getElementById('refreshRepMapBtn').addEventListener('click', loadRepMappings);
+
+// Add Rep toggle
+document.getElementById('addRepBtn').addEventListener('click', () => {
+  const form = document.getElementById('addRepForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') document.getElementById('newRepCallsName').focus();
+});
+document.getElementById('cancelAddRepBtn').addEventListener('click', () => {
+  document.getElementById('addRepForm').style.display = 'none';
+  document.getElementById('newRepCallsName').value = '';
+  document.getElementById('newRepAffiliates').value = '';
+  document.getElementById('addRepFeedback').textContent = '';
+});
+document.getElementById('createRepBtn').addEventListener('click', async () => {
+  const callsName = document.getElementById('newRepCallsName').value.trim();
+  const affRaw    = document.getElementById('newRepAffiliates').value;
+  const feedback  = document.getElementById('addRepFeedback');
+  const btn       = document.getElementById('createRepBtn');
+  if (!callsName) { feedback.style.color = 'var(--red)'; feedback.textContent = 'Calls Log name is required.'; return; }
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    const r = await fetch(ADMIN_API_BASE + '?api=set-rep-mapping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session_.access_token },
+      body: JSON.stringify({
+        callsName,
+        salesAffiliates: affRaw.split(',').map(s => s.trim()).filter(Boolean),
+        userId: null,
+      }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Failed');
+    feedback.style.color = 'var(--green)'; feedback.textContent = '✓ Rep profile created';
+    document.getElementById('newRepCallsName').value = '';
+    document.getElementById('newRepAffiliates').value = '';
+    setTimeout(() => {
+      document.getElementById('addRepForm').style.display = 'none';
+      feedback.textContent = '';
+      loadRepMappings();
+    }, 900);
+  } catch(err) {
+    feedback.style.color = 'var(--red)'; feedback.textContent = '✗ ' + err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Create';
+  }
+});
 
 async function loadRepMappings() {
   const list  = document.getElementById('repMapList');
@@ -776,78 +845,104 @@ async function loadRepMappings() {
 
   try {
     const [rRes, nRes] = await Promise.all([
-      fetch(ADMIN_API_BASE + '?api=rep-mappings', { headers: { Authorization: 'Bearer ' + session_.access_token } }),
+      fetch(ADMIN_API_BASE + '?api=rep-mappings',    { headers: { Authorization: 'Bearer ' + session_.access_token } }),
       fetch(ADMIN_API_BASE + '?api=unassigned-names', { headers: { Authorization: 'Bearer ' + session_.access_token } }),
     ]);
-    const users = await rRes.json();
+    const rData = await rRes.json();
     const names = await nRes.json();
-    if (!rRes.ok) throw new Error(users.error || 'Failed');
-    if (!nRes.ok) throw new Error(names.error || 'Failed');
+    if (!rRes.ok) throw new Error(rData.error || 'Failed to load mappings');
+    if (!nRes.ok) throw new Error(names.error  || 'Failed to load names');
 
-    repMapNames = names;
+    const { profiles, users } = rData;
+    repMapAllUsers = users || [];
 
-    // Render unassigned callout
+    // Populate the datalist for new rep form
+    document.getElementById('callsRepsList').innerHTML =
+      names.allCallsReps.map(n => `<option value="${n}">`).join('');
+
+    // Unassigned callout
     const callout = document.getElementById('unassignedCallout');
     if (names.unassignedCallsReps.length || names.unassignedAffiliates.length) {
       callout.style.display = 'block';
       document.getElementById('unassignedCallsReps').innerHTML =
-        names.unassignedCallsReps.map(n => `<span class="unassigned-chip">${n}</span>`).join('') || '<span style="color:var(--text-dim);font-size:0.72rem;">All mapped</span>';
+        names.unassignedCallsReps.map(n =>
+          `<span class="unassigned-chip" data-type="calls">${n}</span>`).join('') ||
+        '<span style="color:var(--text-dim);font-size:0.72rem;">All mapped ✓</span>';
       document.getElementById('unassignedAffiliates').innerHTML =
-        names.unassignedAffiliates.slice(0, 30).map(a => `<span class="unassigned-chip">${a}</span>`).join('') +
-        (names.unassignedAffiliates.length > 30 ? `<span style="color:var(--text-dim);font-size:0.72rem;"> +${names.unassignedAffiliates.length - 30} more</span>` : '');
+        names.unassignedAffiliates.slice(0, 40).map(a =>
+          `<span class="unassigned-chip" data-type="aff">${a}</span>`).join('') +
+        (names.unassignedAffiliates.length > 40
+          ? `<span style="color:var(--text-dim);font-size:0.72rem;"> +${names.unassignedAffiliates.length - 40} more</span>` : '');
     } else {
       callout.style.display = 'none';
     }
 
-    count.textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
+    count.textContent = `${profiles.length} rep profile${profiles.length !== 1 ? 's' : ''}`;
 
-    list.innerHTML = users.map(u => {
-      const initials = (u.email || u.id).slice(0, 2).toUpperCase();
-      const roleLabel = u.is_admin ? 'Admin' : (u.permissions?.length ? u.permissions.join(', ') : 'No permissions');
-      const currentAffiliates = (u.sales_affiliates || []).join(', ');
-      const callsNameOpts = ['<option value="">— Not mapped —</option>',
-        ...names.allCallsReps.map(n => `<option value="${n}"${u.calls_name === n ? ' selected' : ''}>${n}</option>`)
-      ].join('');
+    // User dropdown options (for linking)
+    const userOpts = ['<option value="">— No user linked —</option>',
+      ...repMapAllUsers.map(u => `<option value="${u.id}">${u.email}</option>`)
+    ].join('');
+
+    list.innerHTML = profiles.map(p => {
+      const initials = (p.calls_name || '?').slice(0, 2).toUpperCase();
+      const currentAff = (p.sales_affiliates || []).join(', ');
+      // Build user select with current value pre-selected
+      const userSelect = `<select class="rep-map-select linked-user-sel">
+        <option value="">— No user linked —</option>
+        ${repMapAllUsers.map(u => `<option value="${u.id}"${p.user_id === u.id ? ' selected' : ''}>${u.email}</option>`).join('')}
+      </select>`;
       return `
-      <div class="rep-map-row" data-id="${u.id}">
+      <div class="rep-map-row" data-profile-id="${p.id}">
         <div class="rep-map-top">
-          <div class="user-av" style="width:36px;height:36px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--surface3),var(--border-light));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:var(--text-muted);border:1px solid var(--border);">${initials}</div>
-          <div>
-            <div class="rep-map-email">${u.email || u.id}</div>
-            <div class="rep-map-role">${roleLabel}</div>
+          <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;background:rgba(34,211,238,0.15);border:1px solid rgba(34,211,238,0.3);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:var(--cyan);">${initials}</div>
+          <div style="flex:1;">
+            <div class="rep-map-email">${p.calls_name}</div>
+            <div class="rep-map-role">${p.user_email ? '🔗 ' + p.user_email : 'No user linked'}</div>
           </div>
+          <button class="save-btn del-rep-btn" data-id="${p.id}" style="color:var(--red);border-color:rgba(248,113,113,0.25);font-size:0.68rem;padding:4px 10px;" title="Delete profile">✕ Delete</button>
         </div>
         <div class="rep-map-fields">
-          <div class="rep-map-field">
-            <label>Calls Log Name</label>
-            <select class="rep-map-select calls-name-sel">${callsNameOpts}</select>
-          </div>
-          <div class="rep-map-field aff-input-wrap">
+          <div class="rep-map-field aff-input-wrap" style="flex:1;min-width:260px;">
             <label>Sales Log Affiliates <span style="font-weight:400;text-transform:none;letter-spacing:0;">(comma-separated)</span></label>
-            <input class="aff-input aff-input-field" type="text" value="${currentAffiliates}" placeholder="e.g. Jordin Pedlar, jordin pedlar, Jordin??">
-            <div class="aff-hint" id="aff-hint-${u.id}">Click an unassigned name above to add it here</div>
+            <input class="aff-input aff-input-field" type="text" value="${currentAff}" placeholder="e.g. Jordin Pedlar, jordin pedlar, Jordin??">
+          </div>
+          <div class="rep-map-field" style="min-width:200px;">
+            <label>Linked User Account</label>
+            ${userSelect}
           </div>
         </div>
         <div class="rep-map-actions">
-          <button class="save-btn rep-map-save" data-id="${u.id}">Save</button>
-          <span class="save-msg" id="rep-msg-${u.id}"></span>
+          <button class="save-btn rep-map-save" data-id="${p.id}" data-calls-name="${p.calls_name}">Save</button>
+          <span class="save-msg" id="rep-msg-${p.id}"></span>
         </div>
       </div>`;
     }).join('');
 
-    // Wire up save buttons
+    if (!profiles.length) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-size:0.84rem;padding:20px 0;text-align:center;">No rep profiles yet. Click "+ Add Rep" to create one.</div>';
+    }
+
+    // Wire save buttons
     list.querySelectorAll('.rep-map-save').forEach(btn => {
       btn.addEventListener('click', () => saveRepMapping(btn));
     });
 
-    // Wire up unassigned chips → click to insert into focused/last aff input
-    document.querySelectorAll('#unassignedCallsReps .unassigned-chip, #unassignedAffiliates .unassigned-chip').forEach(chip => {
+    // Wire delete buttons
+    list.querySelectorAll('.del-rep-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteRepMapping(btn));
+    });
+
+    // Unassigned chips → click to focus last aff input or copy to new-rep field
+    document.querySelectorAll('.unassigned-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const active = document.activeElement;
-        if (active && active.classList.contains('aff-input-field')) {
-          const cur = active.value.trim();
-          active.value = cur ? cur + ', ' + chip.textContent : chip.textContent;
-        }
+        const target = (active && active.classList.contains('aff-input-field'))
+          ? active
+          : document.getElementById('newRepAffiliates');
+        const cur = target.value.trim();
+        target.value = cur ? cur + ', ' + chip.textContent : chip.textContent;
+        target.focus();
       });
     });
 
@@ -857,29 +952,53 @@ async function loadRepMappings() {
 }
 
 async function saveRepMapping(btn) {
-  const row = btn.closest('.rep-map-row');
-  const userId = btn.dataset.id;
-  const callsName = row.querySelector('.calls-name-sel').value || null;
-  const affRaw = row.querySelector('.aff-input-field').value;
+  const row        = btn.closest('.rep-map-row');
+  const profileId  = btn.dataset.id;
+  const callsName  = btn.dataset.callsName;
+  const affRaw     = row.querySelector('.aff-input-field').value;
+  const userId     = row.querySelector('.linked-user-sel').value || null;
   const salesAffiliates = affRaw.split(',').map(s => s.trim()).filter(Boolean);
-  const msg = document.getElementById('rep-msg-' + userId);
+  const msg = document.getElementById('rep-msg-' + profileId);
 
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
     const r = await fetch(ADMIN_API_BASE + '?api=set-rep-mapping', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session_.access_token },
-      body: JSON.stringify({ userId, callsName, salesAffiliates }),
+      body: JSON.stringify({ callsName, salesAffiliates, userId }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'Failed');
     msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved';
+    // Update the linked user label in the header
+    const userEmail = userId ? (repMapAllUsers.find(u => u.id === userId)?.email || '') : 'No user linked';
+    const roleDiv = row.querySelector('.rep-map-role');
+    if (roleDiv) roleDiv.textContent = userId ? '🔗 ' + userEmail : 'No user linked';
     setTimeout(() => { msg.textContent = ''; }, 3000);
   } catch(err) {
     msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + err.message;
     setTimeout(() => { msg.textContent = ''; }, 4000);
   } finally {
     btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function deleteRepMapping(btn) {
+  const id = btn.dataset.id;
+  if (!confirm('Delete this rep profile? This cannot be undone.')) return;
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  try {
+    const r = await fetch(ADMIN_API_BASE + '?api=delete-rep-mapping', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session_.access_token },
+      body: JSON.stringify({ id: Number(id) }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Failed');
+    loadRepMappings(); // reload
+  } catch(err) {
+    btn.disabled = false; btn.textContent = '✕ Delete';
+    alert('Delete failed: ' + err.message);
   }
 }
 
