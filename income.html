@@ -683,29 +683,33 @@
           </button>
         </div>
         <div>
-          <table class="data-table" id="logTable" style="table-layout:fixed;width:100%;">
+          <table class="data-table" id="logTable" style="table-layout:fixed;width:100%;font-size:0.74rem;">
             <colgroup>
-              <col style="width:82px;">
-              <col>
-              <col>
-              <col style="width:72px;">
-              <col style="width:72px;">
-              <col style="width:90px;">
-              <col style="width:82px;">
+              <col style="width:78px;"><!-- Date -->
+              <col style="width:12%;"><!-- Name -->
+              <col style="width:14%;"><!-- Email -->
+              <col style="width:18%;"><!-- Product -->
+              <col style="width:62px;"><!-- Price -->
+              <col style="width:66px;"><!-- Status -->
+              <col style="width:82px;"><!-- Platform -->
+              <col style="width:10%;"><!-- Affiliate -->
+              <col style="width:76px;"><!-- Actions -->
             </colgroup>
             <thead>
               <tr>
                 <th data-col="Date">Date</th>
-                <th data-col="Name">Name / Email</th>
-                <th data-col="Product">Product / Platform</th>
+                <th data-col="Name">Name</th>
+                <th data-col="Email">Email</th>
+                <th data-col="Product">Product</th>
                 <th data-col="Price" class="td-num">Price</th>
                 <th data-col="Status">Status</th>
+                <th data-col="Platform">Platform</th>
                 <th data-col="Affiliate">Affiliate</th>
-                <th style="text-align:right;"></th>
+                <th></th>
               </tr>
             </thead>
             <tbody id="logTableBody">
-              <tr><td colspan="7" class="empty-state">No data loaded</td></tr>
+              <tr><td colspan="9" class="empty-state">No data loaded</td></tr>
             </tbody>
           </table>
         </div>
@@ -1367,23 +1371,20 @@ function renderLog(filter) {
 
   const tbody = document.getElementById('logTableBody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No transactions found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No transactions found</td></tr>';
     return;
   }
 
+  const clip = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
   tbody.innerHTML = rows.map(r => `<tr>
-    <td style="white-space:nowrap;font-size:0.74rem;color:var(--text-muted);">${fmtDate(r.Date)}</td>
-    <td>
-      <div style="font-weight:600;font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Name || '—'}</div>
-      <div style="font-size:0.7rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Email || ''}</div>
-    </td>
-    <td>
-      <div style="font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.Product || ''}">${r.Product || '—'}</div>
-      <div style="font-size:0.7rem;color:var(--text-muted);">${r.Platform || ''}</div>
-    </td>
+    <td style="white-space:nowrap;color:var(--text-muted);">${fmtDate(r.Date)}</td>
+    <td class="td-main" style="${clip}" title="${r.Name||''}">${r.Name || '—'}</td>
+    <td style="${clip}color:var(--text-muted);" title="${r.Email||''}">${r.Email || '—'}</td>
+    <td style="${clip}color:var(--text-muted);" title="${r.Product||''}">${r.Product || '—'}</td>
     <td class="td-money">${r.Price ? fmtMoney(r.Price) : '—'}</td>
     <td>${getStatusBadge(r.Status)}</td>
-    <td style="font-size:0.74rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Affiliate || '—'}</td>
+    <td style="${clip}color:var(--text-muted);" title="${r.Platform||''}">${r.Platform || '—'}</td>
+    <td style="${clip}color:var(--text-muted);" title="${r.Affiliate||''}">${r.Affiliate || '—'}</td>
     <td style="text-align:right;white-space:nowrap;">
       <button class="action-btn action-btn-edit" data-id="${r.id}" title="Edit">Edit</button>
       <button class="action-btn action-btn-del" data-id="${r.id}" title="Delete" style="margin-left:4px;">Del</button>
