@@ -607,7 +607,7 @@
                 <th class="td-num">Calls</th>
                 <th class="td-num">Contacts</th>
                 <th class="td-num">Interviews</th>
-                <th class="td-num">Avg Duration</th>
+                <th class="td-num">Duration</th>
                 <th class="td-num sales-col">Sales</th>
                 <th class="td-num sales-col">GI</th>
                 <th class="td-num sales-col">Close Rates</th>
@@ -1173,7 +1173,7 @@ function renderRepSummaryTable(byRep, totalCalls) {
       <td class="td-num">${calls.toLocaleString()}</td>
       <td class="td-num">${contacts.toLocaleString()}<br><span style="color:var(--text-dim);font-size:0.7rem;">${cRate}% of calls</span></td>
       <td class="td-num">${interviews.toLocaleString()}<br><span style="color:var(--text-dim);font-size:0.7rem;">${iRate}% of calls</span></td>
-      <td class="td-num">${fmtDuration(avgDuration)}</td>
+      <td class="td-num">${fmtDuration(v.totalDuration)}<br><span style="color:var(--text-dim);font-size:0.7rem;">avg ${fmtDuration(avgDuration)}</span></td>
       <td class="td-num sales-col">${v.sales > 0 ? v.sales : dim}</td>
       <td class="td-money sales-col">${v.sales > 0 ? '$' + (v.grossIncome ?? 0).toLocaleString() : dim}</td>
       <td class="td-num sales-col" style="line-height:1.7;">
