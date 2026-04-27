@@ -703,6 +703,72 @@
   </div><!-- /.main -->
 </div><!-- /#app -->
 
+<!-- Edit Modal — must be in DOM before the script runs -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-card">
+    <div class="modal-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Edit Transaction
+    </div>
+    <input type="hidden" id="editId">
+    <div class="modal-grid">
+      <div class="modal-field">
+        <label class="modal-label">Date</label>
+        <input class="modal-input" type="date" id="editDate">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Price ($)</label>
+        <input class="modal-input" type="number" step="0.01" min="0" id="editPrice" placeholder="0.00">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Name</label>
+        <input class="modal-input" type="text" id="editName" placeholder="Full name">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Email</label>
+        <input class="modal-input" type="email" id="editEmail" placeholder="email@example.com">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Product</label>
+        <select class="modal-input" id="editProduct">
+          <option value="The Complete Piano Masterclass Bundle">The Complete Piano Masterclass Bundle</option>
+          <option value="Private Mentorship">Private Mentorship</option>
+          <option value="Christmas Course">Christmas Course</option>
+          <option value="A Luxury Music Retreat in Nashville">A Luxury Music Retreat in Nashville</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Status</label>
+        <select class="modal-input" id="editStatus">
+          <option value="Cash">Cash (Sale)</option>
+          <option value="PP">PP</option>
+          <option value="Rebill">Rebill</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Platform</label>
+        <select class="modal-input" id="editPlatform">
+          <option value="">—</option>
+          <option value="Kajabi">Kajabi</option>
+          <option value="Stripe">Stripe</option>
+          <option value="ThriveCart">ThriveCart</option>
+          <option value="PayPal">PayPal</option>
+          <option value="Hotmart">Hotmart</option>
+        </select>
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Affiliate</label>
+        <input class="modal-input" type="text" id="editAffiliate" placeholder="Affiliate name or code">
+      </div>
+    </div>
+    <div class="modal-err" id="editErr"></div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" id="editCancelBtn">Cancel</button>
+      <button class="modal-btn modal-btn-save" id="editSaveBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Config ─────────────────────────────────────────────────────
 const SUPABASE_URL      = 'https://pojqljrhhtnigyrtzdzz.supabase.co';
@@ -1615,72 +1681,6 @@ document.getElementById('logTableBody').addEventListener('click', e => {
   }
 });
 </script>
-
-<!-- Edit Modal -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-card">
-    <div class="modal-title">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Edit Transaction
-    </div>
-    <input type="hidden" id="editId">
-    <div class="modal-grid">
-      <div class="modal-field">
-        <label class="modal-label">Date</label>
-        <input class="modal-input" type="date" id="editDate">
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">Price ($)</label>
-        <input class="modal-input" type="number" step="0.01" min="0" id="editPrice" placeholder="0.00">
-      </div>
-      <div class="modal-field full">
-        <label class="modal-label">Name</label>
-        <input class="modal-input" type="text" id="editName" placeholder="Full name">
-      </div>
-      <div class="modal-field full">
-        <label class="modal-label">Email</label>
-        <input class="modal-input" type="email" id="editEmail" placeholder="email@example.com">
-      </div>
-      <div class="modal-field full">
-        <label class="modal-label">Product</label>
-        <select class="modal-input" id="editProduct">
-          <option value="The Complete Piano Masterclass Bundle">The Complete Piano Masterclass Bundle</option>
-          <option value="Private Mentorship">Private Mentorship</option>
-          <option value="Christmas Course">Christmas Course</option>
-          <option value="A Luxury Music Retreat in Nashville">A Luxury Music Retreat in Nashville</option>
-        </select>
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">Status</label>
-        <select class="modal-input" id="editStatus">
-          <option value="Cash">Cash (Sale)</option>
-          <option value="PP">PP</option>
-          <option value="Rebill">Rebill</option>
-        </select>
-      </div>
-      <div class="modal-field">
-        <label class="modal-label">Platform</label>
-        <select class="modal-input" id="editPlatform">
-          <option value="">—</option>
-          <option value="Kajabi">Kajabi</option>
-          <option value="Stripe">Stripe</option>
-          <option value="ThriveCart">ThriveCart</option>
-          <option value="PayPal">PayPal</option>
-          <option value="Hotmart">Hotmart</option>
-        </select>
-      </div>
-      <div class="modal-field full">
-        <label class="modal-label">Affiliate</label>
-        <input class="modal-input" type="text" id="editAffiliate" placeholder="Affiliate name or code">
-      </div>
-    </div>
-    <div class="modal-err" id="editErr"></div>
-    <div class="modal-footer">
-      <button class="modal-btn modal-btn-cancel" id="editCancelBtn">Cancel</button>
-      <button class="modal-btn modal-btn-save" id="editSaveBtn">Save Changes</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
