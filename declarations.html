@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sales Declarations</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #080a14; --surface: #0f1120; --surface2: #141728; --surface3: #191e30;
@@ -76,6 +77,34 @@
   /* ── Main layout ────────────────────────────────── */
   #app { position:relative; z-index:1; }
   .main { max-width:1400px; margin:0 auto; padding:28px 24px 60px; }
+
+  /* ── KPI cards ──────────────────────────────────── */
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px,1fr)); gap:12px; margin-bottom:20px; }
+  .kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden; }
+  .kpi-card::before { content:''; position:absolute; inset:0; border-radius:inherit; opacity:0; transition:opacity 0.2s; }
+  .kpi-card:hover::before { opacity:1; }
+  .kpi-label { font-size:0.63rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); margin-bottom:8px; }
+  .kpi-value { font-size:1.55rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+  .kpi-sub   { font-size:0.68rem; color:var(--text-muted); margin-top:5px; }
+  .kpi-green  .kpi-value { color:var(--green); }
+  .kpi-blue   .kpi-value { color:var(--blue); }
+  .kpi-purple .kpi-value { color:var(--purple); }
+  .kpi-gold   .kpi-value { color:var(--gold); }
+  .kpi-red    .kpi-value { color:var(--red); }
+
+  /* ── Chart + product row ────────────────────────── */
+  .dash-row { display:grid; grid-template-columns:1fr 320px; gap:16px; margin-bottom:24px; }
+  @media(max-width:900px) { .dash-row { grid-template-columns:1fr; } }
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:18px 20px; }
+  .chart-card-title { font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:14px; }
+  .chart-wrap { position:relative; height:180px; }
+  .product-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .product-card-title { font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.07em; padding:16px 18px 10px; }
+  .product-tbl { width:100%; border-collapse:collapse; font-size:0.75rem; }
+  .product-tbl th { padding:6px 14px; text-align:left; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-dim); border-bottom:1px solid var(--border); }
+  .product-tbl td { padding:8px 14px; border-bottom:1px solid var(--border); }
+  .product-tbl tr:last-child td { border-bottom:none; }
+  .product-tbl tr:hover td { background:var(--surface2); }
 
   /* ── Section label ──────────────────────────────── */
   .sec-label { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
@@ -234,6 +263,66 @@
   </header>
 
   <div class="main">
+
+    <!-- ── Stats Dashboard ─────────────────────────── -->
+    <div class="sec-label">
+      <span class="sec-label-text">Overview</span>
+      <div class="sec-label-line"></div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Total Declarations</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+        <div class="kpi-sub" id="kpiTotalSub"></div>
+      </div>
+      <div class="kpi-card kpi-gold">
+        <div class="kpi-label">Gross Income</div>
+        <div class="kpi-value" id="kpiGI">—</div>
+        <div class="kpi-sub" id="kpiGISub"></div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Cash Sales</div>
+        <div class="kpi-value" id="kpiSales">—</div>
+        <div class="kpi-sub" id="kpiSalesSub"></div>
+      </div>
+      <div class="kpi-card kpi-purple">
+        <div class="kpi-label">Payment Plans</div>
+        <div class="kpi-value" id="kpiPP">—</div>
+        <div class="kpi-sub" id="kpiPPSub"></div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div class="kpi-label">Rebills</div>
+        <div class="kpi-value" id="kpiRebill">—</div>
+        <div class="kpi-sub" id="kpiRebillSub"></div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Verified</div>
+        <div class="kpi-value" id="kpiVerified">—</div>
+        <div class="kpi-sub" id="kpiVerifiedSub"></div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div class="kpi-label">Not Verified</div>
+        <div class="kpi-value" id="kpiUnverified">—</div>
+        <div class="kpi-sub" id="kpiUnverifiedSub"></div>
+      </div>
+    </div>
+
+    <div class="dash-row">
+      <div class="chart-card">
+        <div class="chart-card-title">Declared Amount by Date</div>
+        <div class="chart-wrap"><canvas id="dailyChart"></canvas></div>
+      </div>
+      <div class="product-card">
+        <div class="product-card-title">By Product</div>
+        <table class="product-tbl">
+          <thead><tr><th>Product</th><th style="text-align:right">Count</th><th style="text-align:right">Total</th></tr></thead>
+          <tbody id="productBody"><tr><td colspan="3" style="padding:20px;text-align:center;color:var(--text-dim);font-size:0.75rem;">—</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Log ─────────────────────────────────────── -->
     <div class="sec-label">
       <span class="sec-label-text">Sales Declarations</span>
       <div class="sec-label-line"></div>
@@ -469,6 +558,114 @@ function populateRepFilter() {
     reps.map(r => `<option value="${r}">${r}</option>`).join('');
 }
 
+// ── Stats Dashboard ───────────────────────────────────────────────
+let dailyChartInst = null;
+
+function renderStats(rows) {
+  const fmt  = v => '$' + Math.round(v).toLocaleString('en-US');
+  const pct  = (n, d) => d > 0 ? ` (${Math.round(n/d*100)}%)` : '';
+
+  const total    = rows.length;
+  let gi = 0, salesCount = 0, salesGI = 0, ppCount = 0, ppGI = 0,
+      rebillCount = 0, rebillGI = 0, verified = 0, unverified = 0;
+
+  // daily map for chart
+  const dayMap = {};
+  // product map
+  const prodMap = {};
+
+  for (const r of rows) {
+    const amt = Number(r.sale_amount) || 0;
+    gi += amt;
+
+    if (r.type === 'Sale')   { salesCount++;  salesGI  += amt; }
+    else if (r.type === 'PP') { ppCount++;    ppGI     += amt; }
+    else if (r.type === 'Rebill') { rebillCount++; rebillGI += amt; }
+
+    if (r.sales_check === 'Yes') verified++;
+    else if (r.sales_check === 'No') unverified++;
+
+    const day = (r.date_closed || '').slice(0, 10);
+    if (day) { dayMap[day] = (dayMap[day] || 0) + amt; }
+
+    const prod = r.product || 'Unknown';
+    if (!prodMap[prod]) prodMap[prod] = { count: 0, total: 0 };
+    prodMap[prod].count++;
+    prodMap[prod].total += amt;
+  }
+
+  // KPI values
+  document.getElementById('kpiTotal').textContent    = total;
+  document.getElementById('kpiTotalSub').textContent = fmt(gi) + ' total';
+  document.getElementById('kpiGI').textContent       = fmt(gi);
+  document.getElementById('kpiGISub').textContent    = `${total} declaration${total !== 1 ? 's' : ''}`;
+  document.getElementById('kpiSales').textContent    = salesCount;
+  document.getElementById('kpiSalesSub').textContent = fmt(salesGI) + pct(salesCount, total);
+  document.getElementById('kpiPP').textContent       = ppCount;
+  document.getElementById('kpiPPSub').textContent    = fmt(ppGI) + pct(ppCount, total);
+  document.getElementById('kpiRebill').textContent   = rebillCount;
+  document.getElementById('kpiRebillSub').textContent= fmt(rebillGI) + pct(rebillCount, total);
+  document.getElementById('kpiVerified').textContent = verified;
+  document.getElementById('kpiVerifiedSub').textContent   = `of ${total} declared` + pct(verified, total);
+  document.getElementById('kpiUnverified').textContent    = unverified;
+  document.getElementById('kpiUnverifiedSub').textContent = pct(unverified, total) + ' of declared';
+
+  // Daily chart
+  const days   = Object.keys(dayMap).sort();
+  const values = days.map(d => dayMap[d]);
+  const labels = days.map(d => {
+    try { const [,m,dd] = d.split('-'); return `${m}/${dd}`; } catch { return d; }
+  });
+
+  if (dailyChartInst) { dailyChartInst.destroy(); dailyChartInst = null; }
+  if (days.length) {
+    const ctx = document.getElementById('dailyChart').getContext('2d');
+    dailyChartInst = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Declared Amount',
+          data: values,
+          backgroundColor: 'rgba(52,211,153,0.55)',
+          borderColor: '#34d399',
+          borderWidth: 1.5,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: { label: ctx => '$' + Math.round(ctx.raw).toLocaleString('en-US') }
+        }},
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7880a8', font: { size: 10 }, maxRotation: 45 } },
+          y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7880a8', font: { size: 10 },
+               callback: v => '$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v) } }
+        }
+      }
+    });
+  }
+
+  // Product breakdown
+  const prods = Object.entries(prodMap).sort((a,b) => b[1].total - a[1].total);
+  const shortName = n => {
+    if (n.length <= 22) return n;
+    const words = n.split(' ');
+    // abbreviate to first letters of long names
+    if (words.length > 3) return words.map(w => w[0]).join('').toUpperCase();
+    return n.slice(0, 22) + '…';
+  };
+  document.getElementById('productBody').innerHTML = prods.length
+    ? prods.map(([name, v]) =>
+        `<tr>
+          <td class="clip" style="max-width:140px;" title="${name}">${shortName(name)}</td>
+          <td style="text-align:right;color:var(--text-muted);">${v.count}</td>
+          <td style="text-align:right;font-weight:700;color:var(--text);">${fmt(v.total)}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--text-dim);font-size:0.75rem;">No data</td></tr>`;
+}
+
 // ── Render table ──────────────────────────────────────────────────
 function fmtDate(v) {
   if (!v) return '—';
@@ -519,6 +716,7 @@ function renderTable() {
   });
 
   document.getElementById('rowCount').textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+  renderStats(rows);
 
   const colspan = canSeeAll ? 12 : 11;
   if (!rows.length) {
