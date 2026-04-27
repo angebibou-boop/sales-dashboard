@@ -1569,33 +1569,40 @@ const PRODUCT_OPTIONS = [
 let editModalRow = null; // current row object being edited
 
 function openEditModal(row) {
-  editModalRow = row;
-  document.getElementById('editId').value    = row.id ?? '';
-  document.getElementById('editDate').value  = (row.Date || '').slice(0, 10);
-  document.getElementById('editName').value  = row.Name || '';
-  document.getElementById('editEmail').value = row.Email || '';
+  try {
+    editModalRow = row;
+    document.getElementById('editId').value        = row.id ?? '';
+    document.getElementById('editDate').value      = (row.Date || '').slice(0, 10);
+    document.getElementById('editName').value      = row.Name || '';
+    document.getElementById('editEmail').value     = row.Email || '';
+    document.getElementById('editPrice').value     = row.Price ?? '';
+    document.getElementById('editAffiliate').value = row.Affiliate || '';
 
-  // Populate product select
-  const prodSel = document.getElementById('editProduct');
-  prodSel.innerHTML = PRODUCT_OPTIONS.map(p =>
-    `<option value="${p}"${p === row.Product ? ' selected' : ''}>${p}</option>`
-  ).join('') + `<option value="${row.Product || ''}"${!PRODUCT_OPTIONS.includes(row.Product) ? ' selected' : ''} style="display:none">${row.Product || ''}</option>`;
-  // If the row product is not in the list, add it as an option
-  if (row.Product && !PRODUCT_OPTIONS.includes(row.Product)) {
-    const opt = document.createElement('option');
-    opt.value = row.Product; opt.textContent = row.Product; opt.selected = true;
-    prodSel.appendChild(opt);
+    // Status select
+    const stSel = document.getElementById('editStatus');
+    stSel.value = row.Status || 'Cash';
+
+    // Platform select
+    const plSel = document.getElementById('editPlatform');
+    plSel.value = row.Platform || '';
+
+    // Product select — set value directly; add unknown product if needed
+    const prodSel = document.getElementById('editProduct');
+    prodSel.value = row.Product || '';
+    if (row.Product && prodSel.value !== row.Product) {
+      const opt = document.createElement('option');
+      opt.value = row.Product; opt.textContent = row.Product; opt.selected = true;
+      prodSel.appendChild(opt);
+      prodSel.value = row.Product;
+    }
+
+    document.getElementById('editErr').textContent = '';
+    document.getElementById('editSaveBtn').disabled = false;
+    document.getElementById('editSaveBtn').textContent = 'Save Changes';
+    document.getElementById('editModal').classList.add('open');
+  } catch(err) {
+    console.error('openEditModal error:', err);
   }
-
-  document.getElementById('editPrice').value    = row.Price ?? '';
-  document.getElementById('editStatus').value   = row.Status || 'Cash';
-  document.getElementById('editAffiliate').value = row.Affiliate || '';
-  document.getElementById('editPlatform').value  = row.Platform || '';
-
-  document.getElementById('editErr').textContent = '';
-  document.getElementById('editSaveBtn').disabled = false;
-  document.getElementById('editSaveBtn').textContent = 'Save Changes';
-  document.getElementById('editModal').classList.add('open');
 }
 
 document.getElementById('editModal').addEventListener('click', e => {
@@ -1634,7 +1641,7 @@ document.getElementById('editSaveBtn').addEventListener('click', async () => {
     if (!res.ok || !json.ok) throw new Error(json.error || 'Update failed');
 
     // Patch local data
-    const idx = logRawData.findIndex(r => r.id === editModalRow.id);
+    const idx = logRawData.findIndex(r => String(r.id) === String(editModalRow.id));
     if (idx !== -1) Object.assign(logRawData[idx], payload);
 
     document.getElementById('editModal').classList.remove('open');
@@ -1671,9 +1678,11 @@ document.getElementById('logTableBody').addEventListener('click', e => {
   const editBtn = e.target.closest('.action-btn-edit');
   const delBtn  = e.target.closest('.action-btn-del');
   if (editBtn) {
-    const id = Number(editBtn.dataset.id);
-    const row = logRawData.find(r => r.id === id);
+    // Use loose comparison (== not ===) to handle string/number mismatch
+    const id = editBtn.dataset.id;
+    const row = logRawData.find(r => String(r.id) === id);
     if (row) openEditModal(row);
+    else console.warn('Edit: row not found for id', id, 'logRawData length:', logRawData.length);
   }
   if (delBtn) {
     const id = Number(delBtn.dataset.id);
