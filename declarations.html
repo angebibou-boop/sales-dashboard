@@ -78,19 +78,30 @@
   #app { position:relative; z-index:1; }
   .main { max-width:1400px; margin:0 auto; padding:28px 24px 60px; }
 
+  /* ── Filter bar ─────────────────────────────────── */
+  .filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 16px; margin-bottom:20px; }
+  .filter-label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); white-space:nowrap; }
+  .filter-input { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:0.78rem; outline:none; cursor:pointer; transition:border-color 0.15s; }
+  .filter-input:focus { border-color:var(--blue); }
+  .filter-sep { color:var(--text-dim); font-size:0.8rem; }
+  .dr-preset { background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:5px 10px; color:var(--text-muted); font-size:0.72rem; font-weight:600; cursor:pointer; transition:all 0.12s; white-space:nowrap; }
+  .dr-preset:hover { color:var(--text); border-color:var(--border-light); }
+  .dr-preset.active { background:var(--blue-bg); border-color:var(--blue); color:var(--blue); }
+
   /* ── KPI cards ──────────────────────────────────── */
-  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(148px,1fr)); gap:12px; margin-bottom:20px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(155px,1fr)); gap:12px; margin-bottom:20px; }
   .kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden; }
   .kpi-card::before { content:''; position:absolute; inset:0; border-radius:inherit; opacity:0; transition:opacity 0.2s; }
   .kpi-card:hover::before { opacity:1; }
   .kpi-label { font-size:0.63rem; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-muted); margin-bottom:8px; }
-  .kpi-value { font-size:1.55rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
-  .kpi-sub   { font-size:0.68rem; color:var(--text-muted); margin-top:5px; }
-  .kpi-green  .kpi-value { color:var(--green); }
-  .kpi-blue   .kpi-value { color:var(--blue); }
-  .kpi-purple .kpi-value { color:var(--purple); }
-  .kpi-gold   .kpi-value { color:var(--gold); }
-  .kpi-red    .kpi-value { color:var(--red); }
+  .kpi-value  { font-size:1.55rem; font-weight:800; letter-spacing:-0.03em; line-height:1; }
+  .kpi-income { font-size:0.9rem; font-weight:700; margin-top:5px; letter-spacing:-0.01em; }
+  .kpi-sub    { font-size:0.65rem; color:var(--text-muted); margin-top:3px; }
+  .kpi-green  .kpi-value, .kpi-green  .kpi-income { color:var(--green); }
+  .kpi-blue   .kpi-value, .kpi-blue   .kpi-income { color:var(--blue); }
+  .kpi-purple .kpi-value, .kpi-purple .kpi-income { color:var(--purple); }
+  .kpi-gold   .kpi-value, .kpi-gold   .kpi-income { color:var(--gold); }
+  .kpi-red    .kpi-value, .kpi-red    .kpi-income { color:var(--red); }
 
   /* ── Chart + product row ────────────────────────── */
   .dash-row { display:grid; grid-template-columns:1fr 320px; gap:16px; margin-bottom:24px; }
@@ -264,6 +275,26 @@
 
   <div class="main">
 
+    <!-- ── Filter bar ──────────────────────────────── -->
+    <div class="filter-bar">
+      <span class="filter-label">Date</span>
+      <input class="filter-input" type="date" id="drFrom">
+      <span class="filter-sep">→</span>
+      <input class="filter-input" type="date" id="drTo">
+      <button class="dr-preset" data-p="mtd">Month to Date</button>
+      <button class="dr-preset" data-p="last30">Last 30 Days</button>
+      <button class="dr-preset" data-p="all">All Time</button>
+      <span class="filter-sep" style="margin-left:4px;">|</span>
+      <span class="filter-label">Product</span>
+      <select class="filter-input" id="productFilter" style="max-width:200px;">
+        <option value="">All Products</option>
+        <option>The Complete Piano Masterclass Bundle</option>
+        <option>Private Mentorship</option>
+        <option>Christmas Course</option>
+        <option>A Luxury Music Retreat in Nashville</option>
+      </select>
+    </div>
+
     <!-- ── Stats Dashboard ─────────────────────────── -->
     <div class="sec-label">
       <span class="sec-label-text">Overview</span>
@@ -271,39 +302,40 @@
     </div>
 
     <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi-card kpi-green">
+      <div class="kpi-card kpi-gold">
         <div class="kpi-label">Total Declarations</div>
         <div class="kpi-value" id="kpiTotal">—</div>
-        <div class="kpi-sub" id="kpiTotalSub"></div>
-      </div>
-      <div class="kpi-card kpi-gold">
-        <div class="kpi-label">Gross Income</div>
-        <div class="kpi-value" id="kpiGI">—</div>
-        <div class="kpi-sub" id="kpiGISub"></div>
+        <div class="kpi-income" id="kpiGI">—</div>
+        <div class="kpi-sub" id="kpiGISub">gross income</div>
       </div>
       <div class="kpi-card kpi-green">
         <div class="kpi-label">Cash Sales</div>
         <div class="kpi-value" id="kpiSales">—</div>
+        <div class="kpi-income" id="kpiSalesAmt">—</div>
         <div class="kpi-sub" id="kpiSalesSub"></div>
       </div>
       <div class="kpi-card kpi-purple">
         <div class="kpi-label">Payment Plans</div>
         <div class="kpi-value" id="kpiPP">—</div>
+        <div class="kpi-income" id="kpiPPAmt">—</div>
         <div class="kpi-sub" id="kpiPPSub"></div>
       </div>
       <div class="kpi-card kpi-blue">
         <div class="kpi-label">Rebills</div>
         <div class="kpi-value" id="kpiRebill">—</div>
+        <div class="kpi-income" id="kpiRebillAmt">—</div>
         <div class="kpi-sub" id="kpiRebillSub"></div>
       </div>
       <div class="kpi-card kpi-green">
         <div class="kpi-label">Verified</div>
         <div class="kpi-value" id="kpiVerified">—</div>
+        <div class="kpi-income" id="kpiVerifiedAmt">—</div>
         <div class="kpi-sub" id="kpiVerifiedSub"></div>
       </div>
       <div class="kpi-card kpi-red">
         <div class="kpi-label">Not Verified</div>
         <div class="kpi-value" id="kpiUnverified">—</div>
+        <div class="kpi-income" id="kpiUnverifiedAmt">—</div>
         <div class="kpi-sub" id="kpiUnverifiedSub"></div>
       </div>
     </div>
@@ -558,32 +590,70 @@ function populateRepFilter() {
     reps.map(r => `<option value="${r}">${r}</option>`).join('');
 }
 
+// ── Date-range helpers ────────────────────────────────────────────
+function localIso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function applyPreset(p) {
+  const today = new Date();
+  let from, to = localIso(today);
+  if (p === 'mtd') {
+    from = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-01`;
+  } else if (p === 'last30') {
+    const d = new Date(today); d.setDate(d.getDate() - 30);
+    from = localIso(d);
+  } else { // all
+    from = ''; to = '';
+  }
+  document.getElementById('drFrom').value = from;
+  document.getElementById('drTo').value   = to;
+  document.querySelectorAll('.dr-preset').forEach(b => b.classList.toggle('active', b.dataset.p === p));
+}
+
+// ── Base filter (date + product + rep) — used for stats ───────────
+function getBaseRows() {
+  const from = document.getElementById('drFrom').value;
+  const to   = document.getElementById('drTo').value;
+  const prod = document.getElementById('productFilter').value;
+  const rep  = canSeeAll ? document.getElementById('repFilter').value : '';
+  return declData.filter(r => {
+    const d = (r.date_closed || '').slice(0, 10);
+    if (from && d < from) return false;
+    if (to   && d > to)   return false;
+    if (prod && r.product !== prod) return false;
+    if (rep  && r.rep_name !== rep) return false;
+    return true;
+  });
+}
+
 // ── Stats Dashboard ───────────────────────────────────────────────
 let dailyChartInst = null;
 
 function renderStats(rows) {
-  const fmt  = v => '$' + Math.round(v).toLocaleString('en-US');
-  const pct  = (n, d) => d > 0 ? ` (${Math.round(n/d*100)}%)` : '';
+  const fmt = v => '$' + Math.round(v).toLocaleString('en-US');
+  const pct = (n, d) => d > 0 ? ` · ${Math.round(n/d*100)}%` : '';
 
-  const total    = rows.length;
-  let gi = 0, salesCount = 0, salesGI = 0, ppCount = 0, ppGI = 0,
-      rebillCount = 0, rebillGI = 0, verified = 0, unverified = 0;
+  const total = rows.length;
+  let gi = 0,
+      salesCount = 0, salesGI = 0,
+      ppCount = 0,    ppGI = 0,
+      rebillCount = 0, rebillGI = 0,
+      verified = 0,   verifiedGI = 0,
+      unverified = 0, unverifiedGI = 0;
 
-  // daily map for chart
-  const dayMap = {};
-  // product map
+  const dayMap  = {};
   const prodMap = {};
 
   for (const r of rows) {
     const amt = Number(r.sale_amount) || 0;
     gi += amt;
 
-    if (r.type === 'Sale')   { salesCount++;  salesGI  += amt; }
-    else if (r.type === 'PP') { ppCount++;    ppGI     += amt; }
-    else if (r.type === 'Rebill') { rebillCount++; rebillGI += amt; }
+    if      (r.type === 'Sale')   { salesCount++;   salesGI   += amt; }
+    else if (r.type === 'PP')     { ppCount++;       ppGI      += amt; }
+    else if (r.type === 'Rebill') { rebillCount++;   rebillGI  += amt; }
 
-    if (r.sales_check === 'Yes') verified++;
-    else if (r.sales_check === 'No') unverified++;
+    if      (r.sales_check === 'Yes') { verified++;   verifiedGI   += amt; }
+    else if (r.sales_check === 'No')  { unverified++; unverifiedGI += amt; }
 
     const day = (r.date_closed || '').slice(0, 10);
     if (day) { dayMap[day] = (dayMap[day] || 0) + amt; }
@@ -594,28 +664,35 @@ function renderStats(rows) {
     prodMap[prod].total += amt;
   }
 
-  // KPI values
-  document.getElementById('kpiTotal').textContent    = total;
-  document.getElementById('kpiTotalSub').textContent = fmt(gi) + ' total';
-  document.getElementById('kpiGI').textContent       = fmt(gi);
-  document.getElementById('kpiGISub').textContent    = `${total} declaration${total !== 1 ? 's' : ''}`;
-  document.getElementById('kpiSales').textContent    = salesCount;
-  document.getElementById('kpiSalesSub').textContent = fmt(salesGI) + pct(salesCount, total);
-  document.getElementById('kpiPP').textContent       = ppCount;
-  document.getElementById('kpiPPSub').textContent    = fmt(ppGI) + pct(ppCount, total);
-  document.getElementById('kpiRebill').textContent   = rebillCount;
-  document.getElementById('kpiRebillSub').textContent= fmt(rebillGI) + pct(rebillCount, total);
-  document.getElementById('kpiVerified').textContent = verified;
-  document.getElementById('kpiVerifiedSub').textContent   = `of ${total} declared` + pct(verified, total);
-  document.getElementById('kpiUnverified').textContent    = unverified;
-  document.getElementById('kpiUnverifiedSub').textContent = pct(unverified, total) + ' of declared';
+  // KPI cards
+  document.getElementById('kpiTotal').textContent       = total;
+  document.getElementById('kpiGI').textContent          = fmt(gi);
+  document.getElementById('kpiGISub').textContent       = `gross income · ${total} declaration${total !== 1 ? 's' : ''}`;
 
-  // Daily chart
+  document.getElementById('kpiSales').textContent       = salesCount;
+  document.getElementById('kpiSalesAmt').textContent    = fmt(salesGI);
+  document.getElementById('kpiSalesSub').textContent    = pct(salesCount, total).replace(' · ', '') + '% of declarations';
+
+  document.getElementById('kpiPP').textContent          = ppCount;
+  document.getElementById('kpiPPAmt').textContent       = fmt(ppGI);
+  document.getElementById('kpiPPSub').textContent       = pct(ppCount, total).replace(' · ', '') + '% of declarations';
+
+  document.getElementById('kpiRebill').textContent      = rebillCount;
+  document.getElementById('kpiRebillAmt').textContent   = fmt(rebillGI);
+  document.getElementById('kpiRebillSub').textContent   = pct(rebillCount, total).replace(' · ', '') + '% of declarations';
+
+  document.getElementById('kpiVerified').textContent    = verified;
+  document.getElementById('kpiVerifiedAmt').textContent = fmt(verifiedGI);
+  document.getElementById('kpiVerifiedSub').textContent = `${total > 0 ? Math.round(verified/total*100) : 0}% match rate`;
+
+  document.getElementById('kpiUnverified').textContent    = unverified;
+  document.getElementById('kpiUnverifiedAmt').textContent = fmt(unverifiedGI);
+  document.getElementById('kpiUnverifiedSub').textContent = `${total > 0 ? Math.round(unverified/total*100) : 0}% unmatched`;
+
+  // Daily bar chart
   const days   = Object.keys(dayMap).sort();
   const values = days.map(d => dayMap[d]);
-  const labels = days.map(d => {
-    try { const [,m,dd] = d.split('-'); return `${m}/${dd}`; } catch { return d; }
-  });
+  const labels = days.map(d => { try { const [,m,dd] = d.split('-'); return `${m}/${dd}`; } catch { return d; } });
 
   if (dailyChartInst) { dailyChartInst.destroy(); dailyChartInst = null; }
   if (days.length) {
@@ -636,7 +713,7 @@ function renderStats(rows) {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: {
-          callbacks: { label: ctx => '$' + Math.round(ctx.raw).toLocaleString('en-US') }
+          callbacks: { label: c => '$' + Math.round(c.raw).toLocaleString('en-US') }
         }},
         scales: {
           x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7880a8', font: { size: 10 }, maxRotation: 45 } },
@@ -647,19 +724,13 @@ function renderStats(rows) {
     });
   }
 
-  // Product breakdown
+  // Product breakdown table
   const prods = Object.entries(prodMap).sort((a,b) => b[1].total - a[1].total);
-  const shortName = n => {
-    if (n.length <= 22) return n;
-    const words = n.split(' ');
-    // abbreviate to first letters of long names
-    if (words.length > 3) return words.map(w => w[0]).join('').toUpperCase();
-    return n.slice(0, 22) + '…';
-  };
+  const short = n => n.length <= 20 ? n : (n.split(' ').length > 3 ? n.split(' ').map(w=>w[0]).join('').toUpperCase() : n.slice(0,20)+'…');
   document.getElementById('productBody').innerHTML = prods.length
     ? prods.map(([name, v]) =>
         `<tr>
-          <td class="clip" style="max-width:140px;" title="${name}">${shortName(name)}</td>
+          <td class="clip" style="max-width:130px;" title="${name}">${short(name)}</td>
           <td style="text-align:right;color:var(--text-muted);">${v.count}</td>
           <td style="text-align:right;font-weight:700;color:var(--text);">${fmt(v.total)}</td>
         </tr>`).join('')
@@ -693,11 +764,15 @@ function checkBadge(c) {
 }
 
 function renderTable() {
-  const search  = document.getElementById('searchBox').value.toLowerCase();
-  const repFilt = canSeeAll ? document.getElementById('repFilter').value : '';
-  const tbody   = document.getElementById('declBody');
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  const tbody  = document.getElementById('declBody');
 
-  let rows = declData;
+  // Base rows: date + product + rep filters → drives stats
+  const baseRows = getBaseRows();
+  renderStats(baseRows);
+
+  // Table rows: base + search
+  let rows = baseRows;
   if (search) rows = rows.filter(r =>
     (r.name||'').toLowerCase().includes(search) ||
     (r.email||'').toLowerCase().includes(search) ||
@@ -705,7 +780,6 @@ function renderTable() {
     (r.type_of_sale||'').toLowerCase().includes(search) ||
     (r.note||'').toLowerCase().includes(search)
   );
-  if (repFilt) rows = rows.filter(r => r.rep_name === repFilt);
 
   rows = [...rows].sort((a, b) => {
     let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
@@ -716,7 +790,6 @@ function renderTable() {
   });
 
   document.getElementById('rowCount').textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
-  renderStats(rows);
 
   const colspan = canSeeAll ? 12 : 11;
   if (!rows.length) {
@@ -867,6 +940,14 @@ document.getElementById('declTable').addEventListener('click', e => {
 
 document.getElementById('searchBox').addEventListener('input', () => renderTable());
 document.getElementById('repFilter').addEventListener('change', () => renderTable());
+document.getElementById('productFilter').addEventListener('change', () => { clearPresets(); renderTable(); });
+document.getElementById('drFrom').addEventListener('change', () => { clearPresets(); renderTable(); });
+document.getElementById('drTo').addEventListener('change',   () => { clearPresets(); renderTable(); });
+document.querySelectorAll('.dr-preset').forEach(b => b.addEventListener('click', () => { applyPreset(b.dataset.p); renderTable(); }));
+function clearPresets() { document.querySelectorAll('.dr-preset').forEach(b => b.classList.remove('active')); }
+
+// Set default to Month to Date on load
+applyPreset('mtd');
 
 document.getElementById('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
