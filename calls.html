@@ -571,7 +571,8 @@
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-card-title">Rep Performance</div>
+          <div class="chart-card-title">Rep Performance Score</div>
+          <div style="font-size:0.6rem;color:var(--text-dim);margin-top:-12px;margin-bottom:14px;letter-spacing:0.04em;">Composite of contact rate · interview rate · avg duration</div>
           <div class="chart-wrap" style="height:260px;">
             <canvas id="repPerfChart"></canvas>
           </div>
@@ -1019,13 +1020,36 @@ function renderRepPerfChart(byRep) {
   const ctx    = canvas.getContext('2d');
   if (repChartInst) { repChartInst.destroy(); repChartInst = null; }
 
-  // Sort reps by calls desc
+  // Build per-rep metrics
   const entries = Object.entries(byRep)
-    .map(([rep, v]) => ({ rep: rep.trim(), calls: v.calls }))
-    .sort((a, b) => b.calls - a.calls);
+    .filter(([, v]) => v.calls > 0)
+    .map(([rep, v]) => ({
+      rep:           rep.trim(),
+      calls:         v.calls,
+      contacts:      v.contacts   ?? 0,
+      interviews:    v.interviews ?? 0,
+      avgDuration:   v.avgDuration ?? 0,
+      contactRate:   v.calls > 0 ? (v.contacts   ?? 0) / v.calls : 0,
+      interviewRate: v.calls > 0 ? (v.interviews ?? 0) / v.calls : 0,
+    }));
 
-  const labels = entries.map(e => e.rep);
-  const values = entries.map(e => e.calls);
+  if (!entries.length) return;
+
+  // Normalise each metric to 0–1 relative to the best rep in that metric
+  const maxCR  = Math.max(...entries.map(e => e.contactRate))   || 1;
+  const maxIR  = Math.max(...entries.map(e => e.interviewRate)) || 1;
+  const maxAD  = Math.max(...entries.map(e => e.avgDuration))   || 1;
+
+  // Composite score = average of three normalised metrics → 0–100
+  const scored = entries
+    .map(e => ({
+      ...e,
+      score: ((e.contactRate / maxCR + e.interviewRate / maxIR + e.avgDuration / maxAD) / 3) * 100,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const labels = scored.map(e => e.rep);
+  const values = scored.map(e => Math.round(e.score * 10) / 10);
   const colors = labels.map(r => repColor(r));
 
   repChartInst = new Chart(ctx, {
@@ -1033,7 +1057,7 @@ function renderRepPerfChart(byRep) {
     data: {
       labels,
       datasets: [{
-        label: 'Calls',
+        label: 'Performance Score',
         data: values,
         backgroundColor: colors.map(c => c + 'aa'),
         borderColor: colors,
@@ -1049,11 +1073,25 @@ function renderRepPerfChart(byRep) {
         tooltip: {
           backgroundColor: '#0f1120', borderColor: '#1f2438', borderWidth: 1,
           titleColor: '#eaecf8', bodyColor: '#7880a8',
-          callbacks: { label: c => ` Calls: ${c.parsed.x.toLocaleString()}` },
+          callbacks: {
+            label: (c) => {
+              const e = scored[c.dataIndex];
+              return [
+                ` Score: ${c.parsed.x.toFixed(1)}%`,
+                ` Contact rate: ${(e.contactRate * 100).toFixed(0)}%  (${e.contacts} / ${e.calls})`,
+                ` Interview rate: ${(e.interviewRate * 100).toFixed(0)}%  (${e.interviews} / ${e.calls})`,
+                ` Avg duration: ${fmtDuration(e.avgDuration)}`,
+              ];
+            },
+          },
         },
       },
       scales: {
-        x: { ticks: { color: '#3e4668', font: { size: 10 } }, grid: { color: 'rgba(31,36,56,0.8)' }, beginAtZero: true },
+        x: {
+          min: 0, max: 100,
+          ticks: { color: '#3e4668', font: { size: 10 }, callback: v => v + '%' },
+          grid: { color: 'rgba(31,36,56,0.8)' },
+        },
         y: { ticks: { color: '#7880a8', font: { size: 10 } }, grid: { color: 'rgba(31,36,56,0.4)' } },
       },
     },
