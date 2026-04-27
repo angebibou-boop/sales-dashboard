@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Declarations</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #080a14; --surface: #0f1120; --surface2: #141728; --surface3: #191e30;
+    --border: #1f2438; --border-light: #272d45;
+    --text: #eaecf8; --text-muted: #7880a8; --text-dim: #3e4668;
+    --blue: #6b9eff; --blue-glow: rgba(107,158,255,0.3); --blue-bg: rgba(107,158,255,0.1);
+    --green: #34d399; --green-bg: rgba(52,211,153,0.1);
+    --purple: #a78bfa; --purple-bg: rgba(167,139,250,0.1);
+    --red: #f87171; --red-bg: rgba(248,113,113,0.1);
+    --gold: #fbbf24; --gold-bg: rgba(251,191,36,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    -webkit-font-smoothing: antialiased; }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(ellipse at 15% 15%, rgba(107,158,255,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 85%, rgba(167,139,250,0.05) 0%, transparent 55%); }
+
+  /* ── State machine ─────────────────────────────── */
+  .full-center { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:1; }
+  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="loading"] #denied { display:none; }
+  body[data-state="login"]   #app, body[data-state="login"]   #boot,  body[data-state="login"]   #denied { display:none; }
+  body[data-state="denied"]  #app, body[data-state="denied"]  #boot,  body[data-state="denied"]  #login  { display:none; }
+  body[data-state="app"]     #boot,body[data-state="app"]     #login, body[data-state="app"]     #denied { display:none; }
+
+  /* ── Spinner ────────────────────────────────────── */
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ── Login card ─────────────────────────────────── */
+  .login-wrap { width:100%; max-width:420px; }
+  .login-logo { width:56px; height:56px; border-radius:16px; margin:0 auto 24px;
+    background:linear-gradient(135deg,#34d399,#6b9eff); display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 32px rgba(52,211,153,0.4); }
+  .login-card { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:40px 36px;
+    box-shadow:0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03) inset; }
+  .login-card h1 { font-size:1.5rem; font-weight:800; letter-spacing:-0.03em; text-align:center; margin-bottom:4px; }
+  .login-card .sub { color:var(--text-muted); font-size:0.84rem; text-align:center; margin-bottom:28px; }
+  .input-group { margin-bottom:12px; }
+  .input-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:6px; display:block; }
+  .auth-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:13px 16px; color:var(--text); font-size:0.92rem; outline:none; transition:border-color 0.15s,box-shadow 0.15s; }
+  .auth-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  .auth-btn { width:100%; margin-top:8px; background:linear-gradient(135deg,#6b9eff,#4a7de0); border:none; border-radius:12px; padding:14px; color:#fff; font-size:0.92rem; font-weight:700; cursor:pointer; transition:transform 0.12s,box-shadow 0.12s; box-shadow:0 4px 16px rgba(107,158,255,0.35); }
+  .auth-btn:hover { transform:translateY(-1px); }
+  .auth-btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+  .auth-error { color:var(--red); font-size:0.78rem; margin-top:10px; min-height:1em; text-align:center; }
+
+  /* ── Topbar ─────────────────────────────────────── */
+  .topbar { position:sticky; top:0; z-index:100; background:rgba(8,10,20,0.85); backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border); padding:0 24px; height:56px;
+    display:flex; align-items:center; gap:10px; }
+  .topbar-brand { font-size:0.82rem; font-weight:800; letter-spacing:-0.01em; color:var(--text); margin-right:4px; }
+  .tbtn { border:none; border-radius:8px; padding:6px 12px; font-size:0.74rem; font-weight:600; cursor:pointer; transition:all 0.15s; display:inline-flex; align-items:center; gap:5px; }
+  .tbtn-ghost { background:var(--surface2); color:var(--text-muted); border:1px solid var(--border); }
+  .tbtn-ghost:hover { color:var(--text); border-color:var(--border-light); }
+  .tbtn-primary { background:linear-gradient(135deg,#34d399,#22b07d); color:#fff; box-shadow:0 2px 10px rgba(52,211,153,0.3); }
+  .tbtn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(52,211,153,0.4); }
+  .user-pill { display:flex; align-items:center; gap:7px; background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:4px 12px 4px 4px; margin-left:auto; }
+  .user-pill-av { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,#34d399,#6b9eff); display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:#fff; }
+  .user-pill-email { font-size:0.72rem; color:var(--text-muted); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nav-dropdown { position:relative; }
+  .nav-dropdown-menu { display:none; position:absolute; top:calc(100% + 8px); left:0; background:var(--surface); border:1px solid var(--border-light); border-radius:12px; padding:6px; min-width:180px; z-index:200; box-shadow:0 8px 32px rgba(0,0,0,0.5); }
+  .nav-dropdown-menu.open { display:block; }
+  .nav-dropdown-item { display:block; padding:8px 12px; border-radius:8px; font-size:0.78rem; color:var(--text-muted); text-decoration:none; transition:background 0.12s,color 0.12s; white-space:nowrap; }
+  .nav-dropdown-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-dropdown-item.active { color:var(--green); }
+
+  /* ── Main layout ────────────────────────────────── */
+  #app { position:relative; z-index:1; }
+  .main { max-width:1400px; margin:0 auto; padding:28px 24px 60px; }
+
+  /* ── Section label ──────────────────────────────── */
+  .sec-label { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .sec-label-text { font-size:0.66rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); white-space:nowrap; }
+  .sec-label-line { flex:1; height:1px; background:var(--border); }
+
+  /* ── Table card ─────────────────────────────────── */
+  .table-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .table-toolbar { display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+  .table-title { font-size:0.82rem; font-weight:700; color:var(--text); }
+  .search-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 12px; color:var(--text); font-size:0.78rem; outline:none; transition:border-color 0.15s; }
+  .search-box:focus { border-color:var(--blue); }
+  .row-count-badge { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:3px 10px; font-size:0.7rem; color:var(--text-muted); white-space:nowrap; }
+  .rep-filter { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:0.78rem; outline:none; cursor:pointer; }
+
+  /* ── Data table ─────────────────────────────────── */
+  .data-table { width:100%; border-collapse:collapse; font-size:0.76rem; table-layout:fixed; }
+  .data-table th { padding:10px 10px; text-align:left; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
+  .data-table th:hover { color:var(--text); }
+  .data-table th.sort-asc::after  { content:' ↑'; color:var(--blue); }
+  .data-table th.sort-desc::after { content:' ↓'; color:var(--blue); }
+  .data-table td { padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .data-table tr:last-child td { border-bottom:none; }
+  .data-table tr:hover td { background:var(--surface2); }
+  .td-num   { text-align:right; font-variant-numeric:tabular-nums; }
+  .td-money { color:var(--text); font-weight:700; text-align:right; font-variant-numeric:tabular-nums; }
+  .td-main  { color:var(--text); font-weight:600; }
+  .clip     { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .muted    { color:var(--text-muted); }
+  .empty-state { text-align:center; color:var(--text-dim); font-size:0.8rem; padding:40px 20px !important; }
+
+  /* Admin-only column */
+  .admin-col { display:none; }
+  body.can-see-all .admin-col { display:table-cell; }
+
+  /* ── Badges ─────────────────────────────────────── */
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:0.68rem; font-weight:700; white-space:nowrap; }
+  .badge-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .badge-green  { background:var(--green-bg);  color:var(--green);  } .badge-green  .badge-dot { background:var(--green); }
+  .badge-blue   { background:var(--blue-bg);   color:var(--blue);   } .badge-blue   .badge-dot { background:var(--blue); }
+  .badge-purple { background:var(--purple-bg); color:var(--purple); } .badge-purple .badge-dot { background:var(--purple); }
+  .badge-red    { background:var(--red-bg);    color:var(--red);    } .badge-red    .badge-dot { background:var(--red); }
+  .badge-dim    { background:var(--surface3);  color:var(--text-dim);} .badge-dim   .badge-dot { background:var(--text-dim); }
+
+  /* ── Action buttons ─────────────────────────────── */
+  .action-btn { display:inline-flex; align-items:center; justify-content:center; border:none; border-radius:6px; cursor:pointer; font-size:0.68rem; font-weight:600; padding:3px 8px; transition:background 0.12s; line-height:1.4; }
+  .action-btn-edit { background:var(--blue-bg);  color:var(--blue); } .action-btn-edit:hover { background:rgba(107,158,255,0.2); }
+  .action-btn-del  { background:var(--red-bg);   color:var(--red);  } .action-btn-del:hover  { background:rgba(248,113,113,0.2); }
+  .action-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+  /* ── Modal ──────────────────────────────────────── */
+  .modal-overlay { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.65); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:24px; }
+  .modal-overlay.open { display:flex; }
+  .modal-card { background:var(--surface); border:1px solid var(--border-light); border-radius:20px; padding:28px 26px; width:100%; max-width:520px; box-shadow:0 32px 80px rgba(0,0,0,0.7); max-height:90vh; overflow-y:auto; }
+  .modal-title { font-size:1rem; font-weight:800; letter-spacing:-0.02em; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+  .modal-grid  { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:18px; }
+  .modal-field { display:flex; flex-direction:column; gap:5px; }
+  .modal-field.full { grid-column:1 / -1; }
+  .modal-label { font-size:0.67rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); }
+  .modal-input { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:9px 12px; color:var(--text); font-size:0.86rem; outline:none; transition:border-color 0.15s,box-shadow 0.15s; width:100%; }
+  .modal-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-bg); }
+  textarea.modal-input { resize:vertical; min-height:64px; font-family:inherit; }
+  .modal-footer { display:flex; gap:10px; justify-content:flex-end; }
+  .modal-btn { border:none; border-radius:10px; padding:10px 20px; font-size:0.86rem; font-weight:700; cursor:pointer; transition:transform 0.1s,box-shadow 0.1s; }
+  .modal-btn-cancel { background:var(--surface3); color:var(--text-muted); } .modal-btn-cancel:hover { color:var(--text); }
+  .modal-btn-save { background:linear-gradient(135deg,#34d399,#22b07d); color:#fff; box-shadow:0 4px 14px rgba(52,211,153,0.3); }
+  .modal-btn-save:hover { transform:translateY(-1px); }
+  .modal-btn-save:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .modal-err { color:var(--red); font-size:0.76rem; margin-bottom:10px; min-height:1em; }
+</style>
+</head>
+<body data-state="loading">
+
+<!-- Boot -->
+<div id="boot" class="full-center">
+  <div style="text-align:center;">
+    <div class="spinner" style="margin:0 auto 16px;"></div>
+    <div style="color:var(--text-muted);font-size:0.84rem;">Loading…</div>
+  </div>
+</div>
+
+<!-- Login -->
+<div id="login" class="full-center">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </div>
+    <div class="login-card">
+      <h1>Sales Declarations</h1>
+      <p class="sub">Sign in to access your declarations</p>
+      <form id="loginForm">
+        <div class="input-group">
+          <label class="input-label" for="email">Email address</label>
+          <input class="auth-input" type="email" id="loginEmail" placeholder="you@company.com" required autocomplete="email">
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="password">Password</label>
+          <input class="auth-input" type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="auth-btn" id="loginBtn">Sign In</button>
+        <div class="auth-error" id="loginError"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Access Denied -->
+<div id="denied" class="full-center">
+  <div class="login-wrap">
+    <div class="login-logo" style="background:linear-gradient(135deg,#f87171,#ef4444);box-shadow:0 8px 32px rgba(248,113,113,0.4);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div class="login-card" style="text-align:center;">
+      <h1 style="color:var(--red);">Access Denied</h1>
+      <p class="sub" style="margin-bottom:20px;">Your account doesn't have permission to view declarations.</p>
+      <button class="auth-btn" id="deniedSignOutBtn">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header class="topbar">
+    <div class="topbar-brand">📋 Declarations</div>
+
+    <!-- Nav dropdown -->
+    <div class="nav-dropdown" id="navDropdown">
+      <button class="tbtn tbtn-ghost" id="navDropdownBtn">
+        Dashboards
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="nav-dropdown-menu" id="navDropdownMenu">
+        <a class="nav-dropdown-item" href="home.html">🏠 Home</a>
+        <a class="nav-dropdown-item" href="index.html">📈 Sales</a>
+        <a class="nav-dropdown-item" href="meta-ads.html">📣 Meta Ads</a>
+        <a class="nav-dropdown-item" href="performance.html">⚡ VSL Performance</a>
+        <a class="nav-dropdown-item" href="income.html">💰 Income</a>
+        <a class="nav-dropdown-item" href="calls.html">📞 Calls</a>
+        <a class="nav-dropdown-item active" href="declarations.html">📋 Declarations</a>
+      </div>
+    </div>
+
+    <!-- User pill -->
+    <div class="user-pill" style="margin-left:auto;">
+      <div class="user-pill-av" id="userAvatar">U</div>
+      <span class="user-pill-email" id="userEmail"></span>
+    </div>
+
+    <!-- Sign out -->
+    <button class="tbtn tbtn-ghost" id="signOutBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </button>
+  </header>
+
+  <div class="main">
+    <div class="sec-label">
+      <span class="sec-label-text">Sales Declarations</span>
+      <div class="sec-label-line"></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-toolbar">
+        <div class="table-title">Declaration Log</div>
+        <input class="search-box" type="search" id="searchBox" placeholder="Search name, email, product…" style="width:210px;">
+        <select class="rep-filter" id="repFilter" style="display:none;">
+          <option value="">All Reps</option>
+        </select>
+        <div class="row-count-badge" id="rowCount">—</div>
+        <button class="tbtn tbtn-primary" id="addBtn" style="margin-left:auto;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Declare Sale
+        </button>
+      </div>
+      <div>
+        <table class="data-table" id="declTable">
+          <colgroup>
+            <col class="admin-col" style="width:8%;"><!-- Rep -->
+            <col style="width:76px;"><!-- Date -->
+            <col style="width:11%;"><!-- Name -->
+            <col style="width:13%;"><!-- Email -->
+            <col style="width:13%;"><!-- Product -->
+            <col style="width:60px;"><!-- Type -->
+            <col style="width:70px;"><!-- Amount -->
+            <col style="width:10%;"><!-- Type of Sale -->
+            <col style="width:76px;"><!-- From -->
+            <col style="width:10%;"><!-- Note -->
+            <col style="width:68px;"><!-- Sales Check -->
+            <col style="width:76px;"><!-- Actions -->
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="admin-col" data-col="rep_name">Rep</th>
+              <th data-col="date_closed">Date</th>
+              <th data-col="name">Name</th>
+              <th data-col="email">Email</th>
+              <th data-col="product">Product</th>
+              <th data-col="type">Type</th>
+              <th data-col="sale_amount" class="td-num">Amount</th>
+              <th data-col="type_of_sale">Type of Sale</th>
+              <th data-col="platform">From</th>
+              <th data-col="note">Note</th>
+              <th data-col="sales_check">Check</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="declBody">
+            <tr><td colspan="12" class="empty-state">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="declModal">
+  <div class="modal-card">
+    <div class="modal-title" id="modalTitle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Declare Sale
+    </div>
+    <input type="hidden" id="fId">
+    <div class="modal-grid">
+      <div class="modal-field">
+        <label class="modal-label">Date Closed</label>
+        <input class="modal-input" type="date" id="fDate">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Sale Amount ($)</label>
+        <input class="modal-input" type="number" step="0.01" min="0" id="fAmount" placeholder="0.00">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Name</label>
+        <input class="modal-input" type="text" id="fName" placeholder="Client full name">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Email</label>
+        <input class="modal-input" type="email" id="fEmail" placeholder="client@email.com">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Product</label>
+        <select class="modal-input" id="fProduct">
+          <option value="">— Select product —</option>
+          <option>The Complete Piano Masterclass Bundle</option>
+          <option>Private Mentorship</option>
+          <option>Christmas Course</option>
+          <option>A Luxury Music Retreat in Nashville</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Type</label>
+        <select class="modal-input" id="fType">
+          <option value="Sale">Sale</option>
+          <option value="PP">PP</option>
+          <option value="Rebill">Rebill</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">From (Platform)</label>
+        <select class="modal-input" id="fPlatform">
+          <option value="">— Select —</option>
+          <option>Kajabi</option>
+          <option>Stripe</option>
+          <option>ThriveCart</option>
+          <option>PayPal</option>
+          <option>Hotmart</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Type of Sale</label>
+        <input class="modal-input" type="text" id="fTypeOfSale" placeholder="e.g. Organic, Webinar, DM…">
+      </div>
+      <div class="modal-field full">
+        <label class="modal-label">Note</label>
+        <textarea class="modal-input" id="fNote" placeholder="Any additional notes…"></textarea>
+      </div>
+    </div>
+    <div class="modal-err" id="modalErr"></div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" id="modalCancelBtn">Cancel</button>
+      <button class="modal-btn modal-btn-save" id="modalSaveBtn">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL      = 'https://pojqljrhhtnigyrtzdzz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvanFsanJoaHRuaWd5cnR6ZHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4MTA3ODMsImV4cCI6MjA5MTM4Njc4M30.PcSBDqOzbiZxZ7IAs5efqx0gsAlAG0cj3GqUOkAmxos';
+const DECL_BASE         = SUPABASE_URL + '/functions/v1/declarations';
+
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, detectSessionInUrl: true, autoRefreshToken: true }
+});
+
+// ── State ────────────────────────────────────────────────────────
+let currentSession = null;
+let declData       = [];
+let canSeeAll      = false;
+let editRow        = null;
+let sortCol        = 'date_closed';
+let sortDir        = 'desc';
+
+function setState(s) { document.body.dataset.state = s; }
+
+// ── Auth ──────────────────────────────────────────────────────────
+async function initAuth() {
+  const timeout = setTimeout(() => setState('login'), 8000);
+  try {
+    const { data: { session }, error } = await supa.auth.getSession();
+    clearTimeout(timeout);
+    if (error) throw error;
+    if (session) { await onAuthed(session); return; }
+    setState('login');
+  } catch(e) { clearTimeout(timeout); setState('login'); }
+  supa.auth.onAuthStateChange(async (_e, sess) => {
+    if (sess) await onAuthed(sess); else setState('login');
+  });
+}
+
+async function onAuthed(session) {
+  currentSession = session;
+  const appMeta = session.user.app_metadata || {};
+  const isAdmin = appMeta.is_admin === true;
+  const perms   = appMeta.permissions || [];
+  const hasRep          = perms.includes('rep');
+  const hasSalesManager = perms.includes('sales_manager');
+
+  if (!isAdmin && !hasRep && !hasSalesManager) {
+    setState('denied'); return;
+  }
+
+  canSeeAll = isAdmin || hasSalesManager;
+  if (canSeeAll) {
+    document.body.classList.add('can-see-all');
+    document.getElementById('repFilter').style.display = 'block';
+  }
+
+  const em = session.user.email || '';
+  document.getElementById('userEmail').textContent = em;
+  document.getElementById('userAvatar').textContent = (em[0] || 'U').toUpperCase();
+
+  setState('app');
+  await loadDeclarations();
+}
+
+// ── Load data ─────────────────────────────────────────────────────
+async function loadDeclarations() {
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    const res = await fetch(DECL_BASE + '?api=log', {
+      headers: { Authorization: 'Bearer ' + session.access_token }
+    });
+    const payload = await res.json();
+    if (!res.ok) throw new Error(payload.error || 'Failed to load');
+    declData = Array.isArray(payload.rows) ? payload.rows : [];
+    populateRepFilter();
+    renderTable();
+  } catch(e) {
+    document.getElementById('declBody').innerHTML =
+      `<tr><td colspan="12" class="empty-state" style="color:var(--red);">${e.message}</td></tr>`;
+  }
+}
+
+function populateRepFilter() {
+  if (!canSeeAll) return;
+  const sel = document.getElementById('repFilter');
+  const reps = [...new Set(declData.map(r => r.rep_name).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All Reps</option>' +
+    reps.map(r => `<option value="${r}">${r}</option>`).join('');
+}
+
+// ── Render table ──────────────────────────────────────────────────
+function fmtDate(v) {
+  if (!v) return '—';
+  try {
+    const [y,m,d] = String(v).slice(0,10).split('-');
+    return `${m}/${d}/${y.slice(2)}`;
+  } catch { return v; }
+}
+
+function fmtMoney(v) {
+  const n = Number(v) || 0;
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function typeBadge(t) {
+  if (t === 'Rebill') return '<span class="badge badge-blue"><span class="badge-dot"></span>Rebill</span>';
+  if (t === 'PP')     return '<span class="badge badge-purple"><span class="badge-dot"></span>PP</span>';
+  return '<span class="badge badge-green"><span class="badge-dot"></span>Sale</span>';
+}
+
+function checkBadge(c) {
+  if (c === 'Yes') return '<span class="badge badge-green"><span class="badge-dot"></span>Yes</span>';
+  if (c === 'No')  return '<span class="badge badge-red"><span class="badge-dot"></span>No</span>';
+  return '<span class="badge badge-dim"><span class="badge-dot"></span>—</span>';
+}
+
+function renderTable() {
+  const search  = document.getElementById('searchBox').value.toLowerCase();
+  const repFilt = canSeeAll ? document.getElementById('repFilter').value : '';
+  const tbody   = document.getElementById('declBody');
+
+  let rows = declData;
+  if (search) rows = rows.filter(r =>
+    (r.name||'').toLowerCase().includes(search) ||
+    (r.email||'').toLowerCase().includes(search) ||
+    (r.product||'').toLowerCase().includes(search) ||
+    (r.type_of_sale||'').toLowerCase().includes(search) ||
+    (r.note||'').toLowerCase().includes(search)
+  );
+  if (repFilt) rows = rows.filter(r => r.rep_name === repFilt);
+
+  rows = [...rows].sort((a, b) => {
+    let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
+    if (sortCol === 'sale_amount') { va = Number(va); vb = Number(vb); }
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1  : -1;
+    return 0;
+  });
+
+  document.getElementById('rowCount').textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+
+  const colspan = canSeeAll ? 12 : 11;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="empty-state">No declarations found</td></tr>`;
+    return;
+  }
+
+  const clip = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td class="admin-col clip muted" title="${r.rep_name||''}">${r.rep_name||'—'}</td>
+    <td style="white-space:nowrap;color:var(--text-muted);">${fmtDate(r.date_closed)}</td>
+    <td class="td-main clip" title="${r.name||''}">${r.name||'—'}</td>
+    <td class="clip muted" title="${r.email||''}">${r.email||'—'}</td>
+    <td class="clip muted" title="${r.product||''}">${r.product||'—'}</td>
+    <td>${typeBadge(r.type)}</td>
+    <td class="td-money">${r.sale_amount ? fmtMoney(r.sale_amount) : '—'}</td>
+    <td class="clip muted" title="${r.type_of_sale||''}">${r.type_of_sale||'—'}</td>
+    <td class="clip muted">${r.platform||'—'}</td>
+    <td class="clip muted" title="${r.note||''}">${r.note||'—'}</td>
+    <td>${checkBadge(r.sales_check)}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="action-btn action-btn-edit" data-id="${r.id}">Edit</button>
+      <button class="action-btn action-btn-del"  data-id="${r.id}" style="margin-left:4px;">Del</button>
+    </td>
+  </tr>`).join('');
+
+  // Sort indicators
+  document.querySelectorAll('#declTable th[data-col]').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === sortCol) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+
+// ── Modal ─────────────────────────────────────────────────────────
+function openModal(row) {
+  editRow = row || null;
+  const isNew = !row?.id;
+  document.getElementById('modalTitle').childNodes[1].textContent = isNew ? ' Declare Sale' : ' Edit Declaration';
+  document.getElementById('modalSaveBtn').textContent = isNew ? 'Submit' : 'Save Changes';
+  document.getElementById('fId').value           = row?.id ?? '';
+  document.getElementById('fDate').value         = (row?.date_closed || new Date().toISOString()).slice(0,10);
+  document.getElementById('fName').value         = row?.name || '';
+  document.getElementById('fEmail').value        = row?.email || '';
+  document.getElementById('fProduct').value      = row?.product || '';
+  document.getElementById('fType').value         = row?.type || 'Sale';
+  document.getElementById('fAmount').value       = row?.sale_amount ?? '';
+  document.getElementById('fTypeOfSale').value   = row?.type_of_sale || '';
+  document.getElementById('fPlatform').value     = row?.platform || '';
+  document.getElementById('fNote').value         = row?.note || '';
+  document.getElementById('modalErr').textContent = '';
+  document.getElementById('modalSaveBtn').disabled = false;
+  document.getElementById('declModal').classList.add('open');
+}
+
+document.getElementById('declModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('declModal')) document.getElementById('declModal').classList.remove('open');
+});
+document.getElementById('modalCancelBtn').addEventListener('click', () => {
+  document.getElementById('declModal').classList.remove('open');
+});
+
+document.getElementById('modalSaveBtn').addEventListener('click', async () => {
+  const btn   = document.getElementById('modalSaveBtn');
+  const errEl = document.getElementById('modalErr');
+  btn.disabled = true; errEl.textContent = '';
+  btn.textContent = 'Saving…';
+
+  const id    = document.getElementById('fId').value;
+  const isNew = !id;
+
+  const payload = {
+    id:           id || undefined,
+    date_closed:  document.getElementById('fDate').value        || null,
+    name:         document.getElementById('fName').value.trim() || null,
+    email:        document.getElementById('fEmail').value.trim()|| null,
+    product:      document.getElementById('fProduct').value     || null,
+    type:         document.getElementById('fType').value        || null,
+    sale_amount:  parseFloat(document.getElementById('fAmount').value) || null,
+    type_of_sale: document.getElementById('fTypeOfSale').value.trim() || null,
+    platform:     document.getElementById('fPlatform').value    || null,
+    note:         document.getElementById('fNote').value.trim() || null,
+  };
+
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    const endpoint = isNew ? '?api=insert' : '?api=update';
+    const res  = await fetch(DECL_BASE + endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json.error || 'Save failed');
+
+    document.getElementById('declModal').classList.remove('open');
+    await loadDeclarations();
+  } catch(err) {
+    errEl.textContent = err.message || 'Error saving';
+    btn.disabled = false;
+    btn.textContent = isNew ? 'Submit' : 'Save Changes';
+  }
+});
+
+// ── Delete ────────────────────────────────────────────────────────
+async function deleteRow(id, btn) {
+  if (!confirm('Delete this declaration? This cannot be undone.')) return;
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const { data: { session } } = await supa.auth.getSession();
+    const res  = await fetch(DECL_BASE + '?api=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ id }),
+    });
+    const json = await res.json();
+    if (!res.ok || !json.ok) throw new Error(json.error || 'Delete failed');
+    declData = declData.filter(r => String(r.id) !== String(id));
+    renderTable();
+  } catch(err) {
+    alert('Delete failed: ' + err.message);
+    btn.disabled = false; btn.textContent = 'Del';
+  }
+}
+
+// ── Event listeners ───────────────────────────────────────────────
+document.getElementById('addBtn').addEventListener('click', () => openModal(null));
+
+document.getElementById('declBody').addEventListener('click', e => {
+  const editBtn = e.target.closest('.action-btn-edit');
+  const delBtn  = e.target.closest('.action-btn-del');
+  if (editBtn) {
+    const row = declData.find(r => String(r.id) === editBtn.dataset.id);
+    if (row) openModal(row);
+  }
+  if (delBtn) deleteRow(delBtn.dataset.id, delBtn);
+});
+
+document.getElementById('declTable').addEventListener('click', e => {
+  const th = e.target.closest('th[data-col]');
+  if (!th) return;
+  const col = th.dataset.col;
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  renderTable();
+});
+
+document.getElementById('searchBox').addEventListener('input', () => renderTable());
+document.getElementById('repFilter').addEventListener('change', () => renderTable());
+
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({
+      email:    document.getElementById('loginEmail').value.trim(),
+      password: document.getElementById('loginPassword').value,
+    });
+    if (error) throw error;
+    await onAuthed(data.session);
+  } catch(e) {
+    err.textContent = e.message || 'Invalid credentials';
+  } finally { btn.disabled = false; btn.textContent = 'Sign In'; }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async () => {
+  await supa.auth.signOut(); setState('login');
+});
+document.getElementById('deniedSignOutBtn').addEventListener('click', async () => {
+  await supa.auth.signOut(); setState('login');
+});
+
+document.getElementById('navDropdownBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('navDropdownMenu').classList.toggle('open');
+});
+document.addEventListener('click', () => {
+  document.getElementById('navDropdownMenu').classList.remove('open');
+});
+
+// ── Boot ──────────────────────────────────────────────────────────
+setState('loading');
+initAuth().catch(() => setState('login'));
+</script>
+</body>
+</html>

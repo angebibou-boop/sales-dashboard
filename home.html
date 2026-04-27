@@ -534,6 +534,13 @@ const BOARDS = [
     desc: 'Rep call activity, talk time, avg duration, and daily trends. Full log with per-rep filtering and live updates.',
     tags: [{ label: 'Reps', bg: 'rgba(34,211,238,0.12)', color: '#22d3ee' }, { label: 'Activity', bg: 'rgba(167,139,250,0.12)', color: '#a78bfa' }],
   },
+  {
+    id: 'declarations', href: 'declarations.html', title: 'Declarations', permission: 'rep',
+    color: '#34d399', glow: 'rgba(52,211,153,0.18)', bg: 'rgba(52,211,153,0.12)',
+    icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>`,
+    desc: 'Reps declare closed sales for verification. Automated sales-check cross-references the Sales Log by email, date, and amount.',
+    tags: [{ label: 'Reps', bg: 'rgba(52,211,153,0.12)', color: '#34d399' }, { label: 'Verification', bg: 'rgba(251,191,36,0.12)', color: '#fbbf24' }],
+  },
 ];
 
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -630,7 +637,9 @@ function renderBoards(isAdmin, perms) {
         ? (perms.includes('sales') && perms.includes('marketing'))
         : b.permission === 'calls'
           ? (perms.includes('calls') || perms.includes('rep') || perms.includes('sales_manager'))
-          : perms.includes(b.permission)
+          : b.permission === 'rep'
+            ? (perms.includes('rep') || perms.includes('sales_manager'))
+            : perms.includes(b.permission)
     );
 
     const statusHtml = hasAccess
