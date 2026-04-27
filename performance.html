@@ -1120,7 +1120,7 @@ document.getElementById('refetchBtn').addEventListener('click', loadAll);
 // ── Date Range Picker ─────────────────────────────────────────
 function getPresetRange(preset) {
   const today = new Date();
-  const iso = d => d.toISOString().slice(0, 10);
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   if (preset === 'last-30') {
     const f = new Date(today); f.setDate(f.getDate() - 30);
     return { from: iso(f), to: iso(today) };
