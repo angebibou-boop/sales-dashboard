@@ -682,24 +682,30 @@
             Add Transaction
           </button>
         </div>
-        <div style="overflow-x:auto;">
-          <table class="data-table" id="logTable">
+        <div>
+          <table class="data-table" id="logTable" style="table-layout:fixed;width:100%;">
+            <colgroup>
+              <col style="width:82px;">
+              <col>
+              <col>
+              <col style="width:72px;">
+              <col style="width:72px;">
+              <col style="width:90px;">
+              <col style="width:82px;">
+            </colgroup>
             <thead>
               <tr>
-                <th class="td-num" style="width:48px;">#</th>
                 <th data-col="Date">Date</th>
-                <th data-col="Name">Name</th>
-                <th data-col="Email">Email</th>
-                <th data-col="Product">Product</th>
+                <th data-col="Name">Name / Email</th>
+                <th data-col="Product">Product / Platform</th>
                 <th data-col="Price" class="td-num">Price</th>
                 <th data-col="Status">Status</th>
-                <th data-col="Platform">Platform</th>
                 <th data-col="Affiliate">Affiliate</th>
-                <th style="width:80px;"></th>
+                <th style="text-align:right;"></th>
               </tr>
             </thead>
             <tbody id="logTableBody">
-              <tr><td colspan="10" class="empty-state">No data loaded</td></tr>
+              <tr><td colspan="7" class="empty-state">No data loaded</td></tr>
             </tbody>
           </table>
         </div>
@@ -1361,21 +1367,24 @@ function renderLog(filter) {
 
   const tbody = document.getElementById('logTableBody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No transactions found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No transactions found</td></tr>';
     return;
   }
 
   tbody.innerHTML = rows.map(r => `<tr>
-    <td class="td-num" style="color:var(--text-dim);font-size:0.7rem;">${r.id ?? '—'}</td>
     <td style="white-space:nowrap;font-size:0.74rem;color:var(--text-muted);">${fmtDate(r.Date)}</td>
-    <td class="td-main">${r.Name || '—'}</td>
-    <td style="font-size:0.74rem;color:var(--text-muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Email || '—'}</td>
-    <td style="font-size:0.74rem;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Product || '—'}</td>
+    <td>
+      <div style="font-weight:600;font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Name || '—'}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Email || ''}</div>
+    </td>
+    <td>
+      <div style="font-size:0.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.Product || ''}">${r.Product || '—'}</div>
+      <div style="font-size:0.7rem;color:var(--text-muted);">${r.Platform || ''}</div>
+    </td>
     <td class="td-money">${r.Price ? fmtMoney(r.Price) : '—'}</td>
     <td>${getStatusBadge(r.Status)}</td>
-    <td style="font-size:0.74rem;color:var(--text-muted);">${r.Platform || '—'}</td>
-    <td style="font-size:0.74rem;color:var(--text-muted);">${r.Affiliate || '—'}</td>
-    <td style="white-space:nowrap;">
+    <td style="font-size:0.74rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.Affiliate || '—'}</td>
+    <td style="text-align:right;white-space:nowrap;">
       <button class="action-btn action-btn-edit" data-id="${r.id}" title="Edit">Edit</button>
       <button class="action-btn action-btn-del" data-id="${r.id}" title="Delete" style="margin-left:4px;">Del</button>
     </td>
