@@ -114,19 +114,51 @@
   .tbtn-ghost:hover { color: var(--text); border-color: var(--border-light); }
   .tbtn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Date filter group */
-  .date-filter {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
-    padding: 4px 10px; font-size: 0.74rem; color: var(--text-muted);
+  /* ── Date Range Picker ─────────────────────────── */
+  .daterange-wrap { position: relative; }
+  .daterange-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 11px; font-size: 0.74rem; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap; font-weight: 600; font-family: inherit;
   }
-  .date-filter input[type="date"] {
-    background: transparent; border: none; color: var(--text); font-size: 0.74rem;
-    font-family: inherit; outline: none; cursor: pointer;
-    color-scheme: dark;
+  .daterange-btn:hover { border-color: var(--border-light); color: var(--text); }
+  .daterange-popup {
+    display: none; position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px; min-width: 270px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset;
+    z-index: 500;
   }
-  body.light .date-filter input[type="date"] { color-scheme: light; }
-  .date-filter-sep { color: var(--text-dim); font-size: 0.7rem; }
+  .daterange-popup.open { display: block; }
+  .dr-presets { display: flex; flex-direction: column; gap: 2px; }
+  .dr-preset {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    padding: 9px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600;
+    color: var(--text-muted); cursor: pointer; transition: all 0.12s; font-family: inherit;
+  }
+  .dr-preset:hover { background: var(--surface2); color: var(--text); }
+  .dr-preset.active { background: rgba(34,211,238,0.1); color: var(--cyan); }
+  .dr-divider { height: 1px; background: var(--border); margin: 10px 0; }
+  .dr-custom-label {
+    font-size: 0.64rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 8px;
+  }
+  .dr-custom-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  .dr-date-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 8px; color: var(--text); font-size: 0.73rem; outline: none;
+    font-family: inherit; transition: border-color 0.15s; color-scheme: dark; min-width: 0;
+  }
+  .dr-date-input:focus { border-color: var(--blue); }
+  body.light .dr-date-input { color-scheme: light; }
+  .dr-sep { color: var(--text-dim); font-size: 0.7rem; flex-shrink: 0; }
+  .dr-apply {
+    width: 100%; background: linear-gradient(135deg, var(--blue), #4a7de0); border: none;
+    border-radius: 8px; padding: 8px; color: #fff; font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; font-family: inherit; transition: opacity 0.15s;
+  }
+  .dr-apply:hover { opacity: 0.9; }
 
   /* Live indicator */
   .live-badge {
@@ -382,12 +414,29 @@
       <div class="live-dot"></div>Live
     </div>
 
-    <!-- Date range -->
-    <div class="date-filter">
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      From <input type="date" id="dateFrom">
-      <span class="date-filter-sep">→</span>
-      To <input type="date" id="dateTo">
+    <!-- Date range picker -->
+    <div class="daterange-wrap" id="daterangeWrap">
+      <button class="daterange-btn" id="daterangeBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span id="drLabel">Last 30 Days</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="daterange-popup" id="daterangePopup">
+        <div class="dr-presets">
+          <button class="dr-preset active" data-preset="last-30">Last 30 Days</button>
+          <button class="dr-preset" data-preset="this-week">This Week  (Thu – Wed)</button>
+          <button class="dr-preset" data-preset="last-week">Last Week  (Thu – Wed)</button>
+          <button class="dr-preset" data-preset="mtd">Month to Date</button>
+        </div>
+        <div class="dr-divider"></div>
+        <div class="dr-custom-label">Custom Range</div>
+        <div class="dr-custom-row">
+          <input type="date" class="dr-date-input" id="dateFrom">
+          <span class="dr-sep">→</span>
+          <input type="date" class="dr-date-input" id="dateTo">
+        </div>
+        <button class="dr-apply" id="drApply">Apply</button>
+      </div>
     </div>
 
     <!-- Refresh -->
@@ -677,16 +726,6 @@ function makeGradient(ctx, hexColor, alpha1 = 0.35, alpha2 = 0) {
   return grad;
 }
 
-function defaultDates() {
-  const to = new Date();
-  const from = new Date();
-  from.setDate(from.getDate() - 30);
-  return {
-    from: from.toISOString().slice(0, 10),
-    to:   to.toISOString().slice(0, 10),
-  };
-}
-
 // ── Theme ───────────────────────────────────────────────────────
 const savedTheme = localStorage.getItem('theme') || 'dark';
 if (savedTheme === 'light') document.body.classList.add('light');
@@ -699,11 +738,6 @@ document.getElementById('themeBtn').addEventListener('click', () => {
   localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
   syncThemeBtn();
 });
-
-// ── Date init ───────────────────────────────────────────────────
-const { from: defaultFrom, to: defaultTo } = defaultDates();
-document.getElementById('dateFrom').value = defaultFrom;
-document.getElementById('dateTo').value   = defaultTo;
 
 // ── Product tabs init ───────────────────────────────────────────
 (function buildProductTabs() {
@@ -1259,10 +1293,6 @@ document.getElementById('productTabs').addEventListener('click', e => {
   if (currentSession) loadData();
 });
 
-// Date change
-document.getElementById('dateFrom').addEventListener('change', () => { statsData = null; logData = null; if (currentSession) loadData(); });
-document.getElementById('dateTo').addEventListener('change',   () => { statsData = null; logData = null; if (currentSession) loadData(); });
-
 // Platform filter
 document.getElementById('platformSelect').addEventListener('change', (e) => {
   activePlatform = e.target.value;
@@ -1337,6 +1367,64 @@ document.addEventListener('click', () => {
 });
 document.getElementById('deniedSignOutBtn').addEventListener('click', async () => {
   await supa.auth.signOut(); setState('login');
+});
+
+// ── Date Range Picker ─────────────────────────────────────────
+function getPresetRange(preset) {
+  const today = new Date();
+  const iso = d => d.toISOString().slice(0, 10);
+  if (preset === 'last-30') {
+    const f = new Date(today); f.setDate(f.getDate() - 30);
+    return { from: iso(f), to: iso(today) };
+  }
+  if (preset === 'mtd') {
+    return { from: iso(new Date(today.getFullYear(), today.getMonth(), 1)), to: iso(today) };
+  }
+  const sinceThu = (today.getDay() + 3) % 7;
+  const thisThu  = new Date(today); thisThu.setDate(today.getDate() - sinceThu);
+  if (preset === 'this-week') return { from: iso(thisThu), to: iso(today) };
+  if (preset === 'last-week') {
+    const lThu = new Date(thisThu); lThu.setDate(thisThu.getDate() - 7);
+    const lWed = new Date(lThu);   lWed.setDate(lThu.getDate() + 6);
+    return { from: iso(lThu), to: iso(lWed) };
+  }
+  return { from: iso(today), to: iso(today) };
+}
+const DR_LABELS = { 'last-30': 'Last 30 Days', 'this-week': 'This Week', 'last-week': 'Last Week', 'mtd': 'Month to Date' };
+let drActivePreset = 'last-30';
+function drFmt(iso) {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function drTriggerLoad() { statsData = null; logData = null; if (currentSession) loadData(); }
+function drApplyPreset(preset, reload) {
+  const { from, to } = getPresetRange(preset);
+  drActivePreset = preset;
+  document.getElementById('dateFrom').value = from;
+  document.getElementById('dateTo').value   = to;
+  document.querySelectorAll('.dr-preset').forEach(b => b.classList.toggle('active', b.dataset.preset === preset));
+  document.getElementById('drLabel').textContent = DR_LABELS[preset] || preset;
+  document.getElementById('daterangePopup').classList.remove('open');
+  if (reload) drTriggerLoad();
+}
+drApplyPreset('last-30', false);
+document.getElementById('daterangeBtn').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('daterangePopup').classList.toggle('open');
+});
+document.getElementById('daterangePopup').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', () => document.getElementById('daterangePopup').classList.remove('open'));
+document.querySelectorAll('.dr-preset').forEach(btn => {
+  btn.addEventListener('click', () => drApplyPreset(btn.dataset.preset, true));
+});
+document.getElementById('drApply').addEventListener('click', () => {
+  const from = document.getElementById('dateFrom').value;
+  const to   = document.getElementById('dateTo').value;
+  if (!from || !to) return;
+  drActivePreset = null;
+  document.querySelectorAll('.dr-preset').forEach(b => b.classList.remove('active'));
+  document.getElementById('drLabel').textContent = `${drFmt(from)} – ${drFmt(to)}`;
+  document.getElementById('daterangePopup').classList.remove('open');
+  drTriggerLoad();
 });
 
 // ── Boot ─────────────────────────────────────────────────────────
