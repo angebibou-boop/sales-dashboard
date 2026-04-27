@@ -555,6 +555,16 @@
           <div class="kpi-value" id="kpi-active-reps">—</div>
           <div class="kpi-sub" id="kpi-active-reps-sub">reps active</div>
         </div>
+        <div class="board-card" id="kpi-sales-card" style="--c-color:#34d399;--c-glow:rgba(52,211,153,0.25);display:none;">
+          <div class="kpi-label">Total Sales</div>
+          <div class="kpi-value" id="kpi-total-sales">—</div>
+          <div class="kpi-sub">new closes (Cash + PP)</div>
+        </div>
+        <div class="board-card" id="kpi-gi-card" style="--c-color:#fbbf24;--c-glow:rgba(251,191,36,0.25);display:none;">
+          <div class="kpi-label">Gross Income</div>
+          <div class="kpi-value" id="kpi-total-gi">—</div>
+          <div class="kpi-sub">from closes in period</div>
+        </div>
       </div>
 
       <!-- Charts -->
@@ -599,11 +609,16 @@
                 <th class="td-num">Interviews</th>
                 <th class="td-num">Total Talk Time</th>
                 <th class="td-num">Avg Duration</th>
+                <th class="td-num sales-col" style="display:none;">Sales</th>
+                <th class="td-num sales-col" style="display:none;">GI</th>
+                <th class="td-num sales-col" style="display:none;">Close/Call</th>
+                <th class="td-num sales-col" style="display:none;">Close/Contact</th>
+                <th class="td-num sales-col" style="display:none;">Close/Interview</th>
                 <th>% of Total</th>
               </tr>
             </thead>
             <tbody id="repSummaryBody">
-              <tr><td colspan="5" class="empty-state">No data</td></tr>
+              <tr><td colspan="12" class="empty-state">No data</td></tr>
             </tbody>
           </table>
         </div>
@@ -824,10 +839,20 @@ async function onAuthed(session) {
     const isAdmin = session.user.app_metadata?.is_admin ?? false;
     const perms   = session.user.app_metadata?.permissions ?? [];
 
-    if (!isAdmin && !perms.includes('calls')) {
+    const hasCalls        = perms.includes('calls');
+    const hasSalesManager = perms.includes('sales_manager');
+    const hasRep          = perms.includes('rep');
+    const isRepOnly       = hasRep && !isAdmin && !hasCalls && !hasSalesManager;
+
+    if (!isAdmin && !hasCalls && !hasSalesManager && !hasRep) {
       document.getElementById('deniedEmail').textContent = email;
       setState('denied');
       return;
+    }
+
+    // Rep-only users: lock the rep selector to themselves (hidden)
+    if (isRepOnly) {
+      document.getElementById('repSelect').style.display = 'none';
     }
 
     setState('dashboard');
@@ -945,6 +970,18 @@ function renderStats() {
   document.getElementById('kpi-avg-dur').textContent          = fmtDuration(avgDur);
   document.getElementById('kpi-active-reps').textContent      = uniqueReps.toLocaleString();
   document.getElementById('kpi-active-reps-sub').textContent  = 'reps active';
+
+  // Sales KPIs (only if sales data is available)
+  if (statsData.hasSalesData) {
+    const totalSales = statsData.overall?.totalSales ?? 0;
+    const totalGI    = statsData.overall?.totalGrossIncome ?? 0;
+    document.getElementById('kpi-sales-card').style.display = '';
+    document.getElementById('kpi-gi-card').style.display    = '';
+    document.getElementById('kpi-total-sales').textContent  = totalSales.toLocaleString();
+    document.getElementById('kpi-total-gi').textContent     = '$' + totalGI.toLocaleString();
+    // Show sales table columns
+    document.querySelectorAll('.sales-col').forEach(el => el.style.display = '');
+  }
 
   // Charts
   renderCallsPerDayChart(daily || []);
@@ -1108,6 +1145,7 @@ function renderRepSummaryTable(byRep, totalCalls) {
       interviews:    v.interviews ?? 0,
       totalDuration: v.totalDuration,
       avgDuration:   v.avgDuration,
+      v,
     }))
     .sort((a, b) => b.calls - a.calls);
 
@@ -1118,7 +1156,7 @@ function renderRepSummaryTable(byRep, totalCalls) {
     return;
   }
 
-  tbody.innerHTML = entries.map(({ rep, calls, contacts, interviews, totalDuration, avgDuration }) => {
+  tbody.innerHTML = entries.map(({ rep, calls, contacts, interviews, totalDuration, avgDuration, v }) => {
     const color    = repColor(rep);
     const pct      = totalCalls > 0 ? ((calls / totalCalls) * 100) : 0;
     const cRate    = calls > 0 ? ((contacts   / calls) * 100).toFixed(0) : '0';
@@ -1127,6 +1165,13 @@ function renderRepSummaryTable(byRep, totalCalls) {
     const g = parseInt(color.slice(3,5),16);
     const b = parseInt(color.slice(5,7),16);
 
+    const hasSales = statsData?.hasSalesData;
+    const salesCells = hasSales ? `
+      <td class="td-num sales-col">${v.sales > 0 ? v.sales : '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td class="td-money sales-col">${v.sales > 0 ? '$' + (v.grossIncome ?? 0).toLocaleString() : '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td class="td-num sales-col">${v.closeRateVsCalls > 0 ? v.closeRateVsCalls + '%' : '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td class="td-num sales-col">${v.closeRateVsContacts > 0 ? v.closeRateVsContacts + '%' : '<span style="color:var(--text-dim);">—</span>'}</td>
+      <td class="td-num sales-col">${v.closeRateVsInterviews > 0 ? v.closeRateVsInterviews + '%' : '<span style="color:var(--text-dim);">—</span>'}</td>` : '';
     return `<tr>
       <td><span class="rep-badge" style="background:rgba(${r},${g},${b},0.15);color:${color};">${rep}</span></td>
       <td class="td-num">${calls.toLocaleString()}</td>
@@ -1134,6 +1179,7 @@ function renderRepSummaryTable(byRep, totalCalls) {
       <td class="td-num">${interviews.toLocaleString()} <span style="color:var(--text-dim);font-size:0.7rem;">(${iRate}%)</span></td>
       <td class="td-num">${fmtDuration(totalDuration)}</td>
       <td class="td-num">${fmtDuration(avgDuration)}</td>
+      ${salesCells}
       <td>
         <div class="mini-bar-wrap">
           <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${color};"></div></div>
