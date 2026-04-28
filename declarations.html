@@ -757,10 +757,12 @@ function typeBadge(t) {
   return '<span class="badge badge-green"><span class="badge-dot"></span>Sale</span>';
 }
 
-function checkBadge(c) {
-  if (c === 'Yes')   return '<span class="badge badge-green"><span class="badge-dot"></span>Yes</span>';
-  if (c === 'Maybe') return '<span class="badge" style="background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);"><span class="badge-dot" style="background:#fbbf24;"></span>Maybe</span>';
-  if (c === 'No')    return '<span class="badge badge-red"><span class="badge-dot"></span>No</span>';
+function checkBadge(c, reason) {
+  const r = (reason || '').replace(/"/g, '&quot;');
+  const tip = r ? ` title="${r}"` : '';
+  if (c === 'Yes')   return `<span class="badge badge-green"${tip}><span class="badge-dot"></span>Yes</span>`;
+  if (c === 'Maybe') return `<span class="badge" style="background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);cursor:help;"${tip}><span class="badge-dot" style="background:#fbbf24;"></span>Maybe ⓘ</span>`;
+  if (c === 'No')    return `<span class="badge badge-red"${tip ? tip + ' style="cursor:help;"' : ''}><span class="badge-dot"></span>No${r ? ' ⓘ' : ''}</span>`;
   return '<span class="badge badge-dim"><span class="badge-dot"></span>—</span>';
 }
 
@@ -810,7 +812,7 @@ function renderTable() {
     <td class="clip muted" title="${r.type_of_sale||''}">${r.type_of_sale||'—'}</td>
     <td class="clip muted">${r.platform||'—'}</td>
     <td class="clip muted" title="${r.note||''}">${r.note||'—'}</td>
-    <td>${checkBadge(r.sales_check)}</td>
+    <td>${checkBadge(r.sales_check, r.sales_check_reason)}</td>
     <td style="text-align:right;white-space:nowrap;">
       <button class="action-btn action-btn-edit" data-id="${r.id}">Edit</button>
       <button class="action-btn action-btn-del"  data-id="${r.id}" style="margin-left:4px;">Del</button>
