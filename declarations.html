@@ -133,6 +133,11 @@
 
   /* ── Data table ─────────────────────────────────── */
   .data-table { width:100%; border-collapse:collapse; font-size:0.76rem; min-width:1400px; }
+  .data-table th.col-actions, .data-table td.col-actions {
+    position:sticky; right:0; background:var(--surface); z-index:2;
+    box-shadow:-8px 0 12px -8px rgba(0,0,0,0.6);
+  }
+  .data-table tr:hover td.col-actions { background:var(--surface2); }
   .data-table th { padding:10px 10px; text-align:left; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
   .data-table th:hover { color:var(--text); }
   .data-table th.sort-asc::after  { content:' ↑'; color:var(--blue); }
@@ -402,7 +407,7 @@
               <th data-col="platform">From</th>
               <th data-col="note">Note</th>
               <th data-col="sales_check">Check</th>
-              <th></th>
+              <th class="col-actions"></th>
             </tr>
           </thead>
           <tbody id="declBody">
@@ -816,7 +821,7 @@ function renderTable() {
     <td class="muted" style="${wrap}">${r.platform||'—'}</td>
     <td class="muted" style="${wrap}">${r.note||'—'}</td>
     <td style="${wrap}">${checkBadge(r.sales_check, r.sales_check_reason)}</td>
-    <td style="text-align:right;white-space:nowrap;">
+    <td class="col-actions" style="text-align:right;white-space:nowrap;">
       <button class="action-btn action-btn-edit" data-id="${r.id}">Edit</button>
       <button class="action-btn action-btn-del"  data-id="${r.id}" style="margin-left:4px;">Del</button>
     </td>
