@@ -132,12 +132,7 @@
   .rep-filter { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:var(--text); font-size:0.78rem; outline:none; cursor:pointer; }
 
   /* ── Data table ─────────────────────────────────── */
-  .data-table { width:1700px; border-collapse:collapse; font-size:0.76rem; table-layout:fixed; }
-  .data-table th.col-actions, .data-table td.col-actions {
-    position:sticky; right:0; background:var(--surface); z-index:2;
-    box-shadow:-8px 0 12px -8px rgba(0,0,0,0.6);
-  }
-  .data-table tr:hover td.col-actions { background:var(--surface2); }
+  .data-table { width:100%; min-width:1700px; border-collapse:collapse; font-size:0.76rem; table-layout:fixed; }
   .data-table th { padding:10px 10px; text-align:left; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; cursor:pointer; user-select:none; }
   .data-table th:hover { color:var(--text); }
   .data-table th.sort-asc::after  { content:' ↑'; color:var(--blue); }
