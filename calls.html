@@ -539,7 +539,7 @@
         <div class="board-card" style="--c-color:#a78bfa;--c-glow:rgba(167,139,250,0.25);">
           <div class="kpi-label">Interviews</div>
           <div class="kpi-value" id="kpi-interviews">—</div>
-          <div class="kpi-sub" id="kpi-interviews-sub">calls ≥ 6 min</div>
+          <div class="kpi-sub" id="kpi-interviews-sub">calls ≥ 10 min</div>
         </div>
         <div class="board-card" style="--c-color:#f472b6;--c-glow:rgba(244,114,182,0.25);">
           <div class="kpi-label">Total Talk Time</div>
@@ -549,23 +549,31 @@
         <div class="board-card" style="--c-color:#fbbf24;--c-glow:rgba(251,191,36,0.25);">
           <div class="kpi-label">Avg Call Duration</div>
           <div class="kpi-value" id="kpi-avg-dur">—</div>
-          <div class="kpi-sub">per call</div>
+          <div class="kpi-sub">per contacted call</div>
         </div>
-        <div class="board-card" style="--c-color:#38bdf8;--c-glow:rgba(56,189,248,0.25);">
-          <div class="kpi-label">Active Reps</div>
-          <div class="kpi-value" id="kpi-active-reps">—</div>
-          <div class="kpi-sub" id="kpi-active-reps-sub">reps active</div>
+        <div class="board-card" id="kpi-close-card" style="--c-color:#38bdf8;--c-glow:rgba(56,189,248,0.25);display:none;">
+          <div class="kpi-label">Close Rate</div>
+          <div class="kpi-value" id="kpi-close-rate">—</div>
+          <div class="kpi-sub">sales / interviews</div>
         </div>
         <div class="board-card" id="kpi-sales-card" style="--c-color:#34d399;--c-glow:rgba(52,211,153,0.25);display:none;">
-          <div class="kpi-label">Total Sales</div>
+          <div class="kpi-label" id="kpi-sales-label">Total Sales</div>
           <div class="kpi-value" id="kpi-total-sales">—</div>
-          <div class="kpi-sub">new closes (Cash + PP)</div>
+          <div class="kpi-sub" id="kpi-sales-sub">new closes (Cash + PP)</div>
         </div>
         <div class="board-card" id="kpi-gi-card" style="--c-color:#fbbf24;--c-glow:rgba(251,191,36,0.25);display:none;">
-          <div class="kpi-label">Gross Income</div>
+          <div class="kpi-label" id="kpi-gi-label">Gross Income</div>
           <div class="kpi-value" id="kpi-total-gi">—</div>
-          <div class="kpi-sub">from closes in period</div>
+          <div class="kpi-sub" id="kpi-gi-sub">from closes in period</div>
         </div>
+      </div>
+
+      <!-- Product filter -->
+      <div id="productFilterBar" style="display:none;margin:-8px 0 24px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Product:</span>
+        <button class="prod-chip" data-prod="all" style="padding:6px 14px;border-radius:8px;border:1px solid #1f2438;background:rgba(56,189,248,0.18);color:#38bdf8;font-size:0.75rem;font-weight:700;cursor:pointer;">All</button>
+        <button class="prod-chip" data-prod="masterclass" style="padding:6px 14px;border-radius:8px;border:1px solid #1f2438;background:transparent;color:var(--text-dim);font-size:0.75rem;font-weight:600;cursor:pointer;">Masterclass</button>
+        <button class="prod-chip" data-prod="mentorship" style="padding:6px 14px;border-radius:8px;border:1px solid #1f2438;background:transparent;color:var(--text-dim);font-size:0.75rem;font-weight:600;cursor:pointer;">Mentorship</button>
       </div>
 
       <!-- Charts -->
@@ -574,18 +582,40 @@
         <div class="sec-label-line"></div>
       </div>
 
-      <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-card-title">Calls Per Day</div>
-          <div class="chart-wrap" style="height:260px;">
-            <canvas id="callsPerDayChart"></canvas>
-          </div>
+      <div class="chart-card" style="margin-bottom:28px;">
+        <div class="chart-card-title">Calls Per Day</div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="callsPerDayChart"></canvas>
         </div>
-        <div class="chart-card">
-          <div class="chart-card-title">Rep Performance Score</div>
-          <div style="font-size:0.6rem;color:var(--text-dim);margin-top:-12px;margin-bottom:14px;letter-spacing:0.04em;">Composite of contact rate · interview rate · avg duration</div>
-          <div class="chart-wrap" style="height:260px;">
-            <canvas id="repPerfChart"></canvas>
+      </div>
+
+      <!-- Leaderboards -->
+      <div id="leaderboardsSection" style="display:none;">
+        <div class="sec-label">
+          <span class="sec-label-text">Leaderboards</span>
+          <div class="sec-label-line"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+          <div class="chart-card">
+            <div class="chart-card-title" style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#34d399;"></span>
+              Masterclass
+            </div>
+            <div id="lb-masterclass" style="margin-top:12px;"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title" style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#a78bfa;"></span>
+              Mentorship
+            </div>
+            <div id="lb-mentorship" style="margin-top:12px;"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title" style="display:flex;align-items:center;gap:8px;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#fbbf24;"></span>
+              Overall Revenue
+            </div>
+            <div id="lb-overall" style="margin-top:12px;"></div>
           </div>
         </div>
       </div>
@@ -689,8 +719,8 @@ let statsData       = null;
 let logRawData      = [];
 let currentSession  = null;
 let activeRep       = '';
+let activeProduct   = 'all'; // 'all' | 'masterclass' | 'mentorship'
 let callsChartInst  = null;
-let repChartInst    = null;
 let logSortCol      = 'Date & Time';
 let logSortDir      = 'desc';
 
@@ -965,23 +995,84 @@ function renderStats() {
   document.getElementById('kpi-total-time').textContent       = fmtDuration(totalDur);
   document.getElementById('kpi-total-time-sub').textContent   = `across ${totalCalls.toLocaleString()} calls`;
   document.getElementById('kpi-avg-dur').textContent          = fmtDuration(avgDur);
-  document.getElementById('kpi-active-reps').textContent      = uniqueReps.toLocaleString();
-  document.getElementById('kpi-active-reps-sub').textContent  = 'reps active';
 
-  // Sales KPIs — show cards only when mappings are configured
+  // Sales KPIs — respect activeProduct filter
   if (statsData.hasSalesData) {
-    const totalSales = statsData.overall?.totalSales ?? 0;
-    const totalGI    = statsData.overall?.totalGrossIncome ?? 0;
+    document.getElementById('productFilterBar').style.display = 'flex';
+    document.getElementById('leaderboardsSection').style.display = '';
     document.getElementById('kpi-sales-card').style.display = '';
     document.getElementById('kpi-gi-card').style.display    = '';
-    document.getElementById('kpi-total-sales').textContent  = totalSales.toLocaleString();
-    document.getElementById('kpi-total-gi').textContent     = '$' + totalGI.toLocaleString();
+    document.getElementById('kpi-close-card').style.display = '';
+
+    let salesCount, giAmount, salesLabel;
+    if (activeProduct === 'masterclass') {
+      salesCount = overall?.totalSalesMC ?? 0;
+      giAmount   = overall?.totalGiMC ?? 0;
+      salesLabel = 'Masterclass Sales';
+    } else if (activeProduct === 'mentorship') {
+      salesCount = overall?.totalSalesMP ?? 0;
+      giAmount   = overall?.totalGiMP ?? 0;
+      salesLabel = 'Mentorship Sales';
+    } else {
+      salesCount = overall?.totalSales ?? 0;
+      giAmount   = overall?.totalGrossIncome ?? 0;
+      salesLabel = 'Total Sales';
+    }
+    document.getElementById('kpi-sales-label').textContent = salesLabel;
+    document.getElementById('kpi-gi-label').textContent    = activeProduct === 'all' ? 'Gross Income' : (salesLabel.replace('Sales','GI'));
+    document.getElementById('kpi-total-sales').textContent = salesCount.toLocaleString();
+    document.getElementById('kpi-total-gi').textContent    = '$' + giAmount.toLocaleString();
+
+    // Close rate — sales (filtered) / interviews
+    const closeRate = totalInterviews > 0 ? ((salesCount / totalInterviews) * 100).toFixed(1) : '0.0';
+    document.getElementById('kpi-close-rate').textContent = closeRate + '%';
+
+    renderLeaderboards(byRep || {});
   }
 
-  // Charts
   renderCallsPerDayChart(daily || []);
-  renderRepPerfChart(byRep || {});
   renderRepSummaryTable(byRep || {}, totalCalls);
+}
+
+function renderLeaderboards(byRep) {
+  const buckets = [
+    { id: 'lb-masterclass', key: 'masterclass', color: '#34d399' },
+    { id: 'lb-mentorship',  key: 'mentorship',  color: '#a78bfa' },
+    { id: 'lb-overall',     key: null,          color: '#fbbf24' },
+  ];
+  for (const b of buckets) {
+    const entries = Object.entries(byRep)
+      .map(([rep, v]) => {
+        const sales = b.key ? v[b.key].sales       : v.sales;
+        const gi    = b.key ? v[b.key].grossIncome : v.grossIncome;
+        return { rep: rep.trim(), sales, gi };
+      })
+      .filter(e => e.sales > 0 || e.gi > 0)
+      .sort((a, b) => b.gi - a.gi || b.sales - a.sales)
+      .slice(0, 10);
+
+    const el = document.getElementById(b.id);
+    if (!entries.length) {
+      el.innerHTML = `<div style="color:var(--text-dim);font-size:0.78rem;padding:14px 0;text-align:center;">No sales in period</div>`;
+      continue;
+    }
+    const maxGi = Math.max(...entries.map(e => e.gi)) || 1;
+    el.innerHTML = entries.map((e, i) => {
+      const c = repColor(e.rep);
+      const pct = (e.gi / maxGi) * 100;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(31,36,56,0.5);">
+        <span style="width:18px;color:var(--text-dim);font-size:0.7rem;font-weight:700;">${i+1}.</span>
+        <span class="rep-badge" style="background:${c}22;color:${c};min-width:75px;">${e.rep}</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+          <div class="mini-bar-bg" style="width:100%;height:5px;"><div class="mini-bar-fill" style="width:${pct.toFixed(1)}%;background:${c};"></div></div>
+        </div>
+        <div style="text-align:right;min-width:90px;">
+          <div style="font-size:0.85rem;font-weight:800;color:${c};">$${e.gi.toLocaleString()}</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">${e.sales} sale${e.sales !== 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
 }
 
 function renderCallsPerDayChart(daily) {
@@ -1047,7 +1138,7 @@ function renderCallsPerDayChart(daily) {
   });
 }
 
-function renderRepPerfChart(byRep) {
+function renderRepPerfChart_REMOVED(byRep) {
   const canvas = document.getElementById('repPerfChart');
   const ctx    = canvas.getContext('2d');
   if (repChartInst) { repChartInst.destroy(); repChartInst = null; }
@@ -1250,6 +1341,22 @@ function renderLog(filter) {
 }
 
 // ── Event Listeners ──────────────────────────────────────────────
+
+// Product filter chips
+document.querySelectorAll('.prod-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const prod = chip.dataset.prod;
+    if (prod === activeProduct) return;
+    activeProduct = prod;
+    document.querySelectorAll('.prod-chip').forEach(c => {
+      const isActive = c.dataset.prod === activeProduct;
+      c.style.background = isActive ? 'rgba(56,189,248,0.18)' : 'transparent';
+      c.style.color      = isActive ? '#38bdf8' : 'var(--text-dim)';
+      c.style.fontWeight = isActive ? '700' : '600';
+    });
+    if (statsData) renderStats();
+  });
+});
 
 // View tabs
 document.getElementById('viewTabs').addEventListener('click', e => {
