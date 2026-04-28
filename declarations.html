@@ -760,9 +760,12 @@ function typeBadge(t) {
 function checkBadge(c, reason) {
   const r = (reason || '').replace(/"/g, '&quot;');
   const tip = r ? ` title="${r}"` : '';
+  const reasonLine = r
+    ? `<div style="font-size:0.62rem;color:var(--text-dim);margin-top:4px;line-height:1.3;max-width:180px;white-space:normal;">${r}</div>`
+    : '';
   if (c === 'Yes')   return `<span class="badge badge-green"${tip}><span class="badge-dot"></span>Yes</span>`;
-  if (c === 'Maybe') return `<span class="badge" style="background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);cursor:help;"${tip}><span class="badge-dot" style="background:#fbbf24;"></span>Maybe ⓘ</span>`;
-  if (c === 'No')    return `<span class="badge badge-red"${tip ? tip + ' style="cursor:help;"' : ''}><span class="badge-dot"></span>No${r ? ' ⓘ' : ''}</span>`;
+  if (c === 'Maybe') return `<span class="badge" style="background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);"${tip}><span class="badge-dot" style="background:#fbbf24;"></span>Maybe</span>${reasonLine}`;
+  if (c === 'No')    return `<span class="badge badge-red"${tip}><span class="badge-dot"></span>No</span>${reasonLine}`;
   return '<span class="badge badge-dim"><span class="badge-dot"></span>—</span>';
 }
 
