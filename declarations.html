@@ -652,8 +652,8 @@ function renderStats(rows) {
     else if (r.type === 'PP')     { ppCount++;       ppGI      += amt; }
     else if (r.type === 'Rebill') { rebillCount++;   rebillGI  += amt; }
 
-    if      (r.sales_check === 'Yes') { verified++;   verifiedGI   += amt; }
-    else if (r.sales_check === 'No')  { unverified++; unverifiedGI += amt; }
+    if      (r.sales_check === 'Yes')                           { verified++;   verifiedGI   += amt; }
+    else if (r.sales_check === 'No' || r.sales_check === 'Maybe') { unverified++; unverifiedGI += amt; }
 
     const day = (r.date_closed || '').slice(0, 10);
     if (day) { dayMap[day] = (dayMap[day] || 0) + amt; }
@@ -758,8 +758,9 @@ function typeBadge(t) {
 }
 
 function checkBadge(c) {
-  if (c === 'Yes') return '<span class="badge badge-green"><span class="badge-dot"></span>Yes</span>';
-  if (c === 'No')  return '<span class="badge badge-red"><span class="badge-dot"></span>No</span>';
+  if (c === 'Yes')   return '<span class="badge badge-green"><span class="badge-dot"></span>Yes</span>';
+  if (c === 'Maybe') return '<span class="badge" style="background:rgba(251,191,36,0.14);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);"><span class="badge-dot" style="background:#fbbf24;"></span>Maybe</span>';
+  if (c === 'No')    return '<span class="badge badge-red"><span class="badge-dot"></span>No</span>';
   return '<span class="badge badge-dim"><span class="badge-dot"></span>—</span>';
 }
 
