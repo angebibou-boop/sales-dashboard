@@ -27,10 +27,12 @@
 
   /* ── State machine ─────────────────────────────── */
   .full-center { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:1; }
-  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="loading"] #denied { display:none; }
-  body[data-state="login"]   #app, body[data-state="login"]   #boot,  body[data-state="login"]   #denied { display:none; }
-  body[data-state="denied"]  #app, body[data-state="denied"]  #boot,  body[data-state="denied"]  #login  { display:none; }
-  body[data-state="app"]     #boot,body[data-state="app"]     #login, body[data-state="app"]     #denied { display:none; }
+  body[data-state="loading"] #app, body[data-state="loading"] #login, body[data-state="loading"] #denied, body[data-state="loading"] #forgot, body[data-state="loading"] #setPw { display:none; }
+  body[data-state="login"]   #app, body[data-state="login"]   #boot,  body[data-state="login"]   #denied, body[data-state="login"]   #forgot, body[data-state="login"]   #setPw { display:none; }
+  body[data-state="denied"]  #app, body[data-state="denied"]  #boot,  body[data-state="denied"]  #login,  body[data-state="denied"]  #forgot, body[data-state="denied"]  #setPw { display:none; }
+  body[data-state="app"]     #boot,body[data-state="app"]     #login, body[data-state="app"]     #denied, body[data-state="app"]     #forgot, body[data-state="app"]     #setPw { display:none; }
+  body[data-state="forgot"]  #app, body[data-state="forgot"]  #boot,  body[data-state="forgot"]  #login,  body[data-state="forgot"]  #denied, body[data-state="forgot"]  #setPw { display:none; }
+  body[data-state="setPw"]   #app, body[data-state="setPw"]   #boot,  body[data-state="setPw"]   #login,  body[data-state="setPw"]   #denied, body[data-state="setPw"]   #forgot { display:none; }
 
   /* ── Spinner ────────────────────────────────────── */
   .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin .7s linear infinite; }
@@ -219,6 +221,53 @@
         </div>
         <button type="submit" class="auth-btn" id="loginBtn">Sign In</button>
         <div class="auth-error" id="loginError"></div>
+        <div style="text-align:center;margin-top:14px;">
+          <a href="#" id="forgotLink" style="color:var(--blue);font-size:0.78rem;text-decoration:none;">Forgot password?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot password -->
+<div id="forgot" class="full-center">
+  <div class="login-wrap">
+    <div class="login-card">
+      <h1>Reset password</h1>
+      <p class="sub">Enter your email — we'll send you a reset link.</p>
+      <form id="forgotForm">
+        <div class="input-group">
+          <label class="input-label" for="forgotEmail">Email address</label>
+          <input class="auth-input" type="email" id="forgotEmail" placeholder="you@company.com" required autocomplete="email">
+        </div>
+        <button type="submit" class="auth-btn" id="forgotBtn">Send reset link</button>
+        <div class="auth-error" id="forgotError"></div>
+        <div class="auth-success" id="forgotSuccess" style="color:var(--green);font-size:0.78rem;margin-top:10px;text-align:center;display:none;"></div>
+        <div style="text-align:center;margin-top:14px;">
+          <a href="#" id="backToLoginLink" style="color:var(--text-muted);font-size:0.78rem;text-decoration:none;">← Back to sign in</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Set new password (recovery flow) -->
+<div id="setPw" class="full-center">
+  <div class="login-wrap">
+    <div class="login-card">
+      <h1>Choose a new password</h1>
+      <p class="sub">Pick a strong password to secure your account.</p>
+      <form id="setPwForm">
+        <div class="input-group">
+          <label class="input-label" for="newPw">New password</label>
+          <input class="auth-input" type="password" id="newPw" placeholder="Min 8 characters" required autocomplete="new-password">
+        </div>
+        <div class="input-group">
+          <label class="input-label" for="newPw2">Confirm password</label>
+          <input class="auth-input" type="password" id="newPw2" placeholder="Confirm password" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="auth-btn" id="setPwBtn">Update password</button>
+        <div class="auth-error" id="setPwError"></div>
       </form>
     </div>
   </div>
@@ -513,7 +562,20 @@ let sortDir        = 'desc';
 function setState(s) { document.body.dataset.state = s; }
 
 // ── Auth ──────────────────────────────────────────────────────────
+const _hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+const isRecoveryLink = _hash.get('type') === 'recovery';
+
 async function initAuth() {
+  if (isRecoveryLink) {
+    // Supabase will fire PASSWORD_RECOVERY via onAuthStateChange after processing the hash
+    setState('setPw');
+    supa.auth.onAuthStateChange((_e, sess) => {
+      // Stay on set-password screen until user submits new password
+      if (document.body.dataset.state === 'setPw') return;
+      if (sess) onAuthed(sess); else setState('login');
+    });
+    return;
+  }
   const timeout = setTimeout(() => setState('login'), 8000);
   try {
     const { data: { session }, error } = await supa.auth.getSession();
@@ -977,6 +1039,64 @@ document.getElementById('signOutBtn').addEventListener('click', async () => {
 });
 document.getElementById('deniedSignOutBtn').addEventListener('click', async () => {
   await supa.auth.signOut(); setState('login');
+});
+
+// ── Forgot password flow ──────────────────────────────────────────
+document.getElementById('forgotLink').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value.trim();
+  document.getElementById('forgotError').textContent = '';
+  document.getElementById('forgotSuccess').style.display = 'none';
+  setState('forgot');
+});
+document.getElementById('backToLoginLink').addEventListener('click', e => {
+  e.preventDefault(); setState('login');
+});
+document.getElementById('forgotForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('forgotBtn');
+  const err = document.getElementById('forgotError');
+  const ok  = document.getElementById('forgotSuccess');
+  const email = document.getElementById('forgotEmail').value.trim();
+  err.textContent = ''; ok.style.display = 'none';
+  if (!email) { err.textContent = 'Enter your email'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const { error } = await supa.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + window.location.pathname,
+    });
+    if (error) throw error;
+    ok.textContent = 'If that email is registered, a reset link is on its way.';
+    ok.style.display = 'block';
+  } catch(e) {
+    // Don't leak whether email exists — show generic success
+    ok.textContent = 'If that email is registered, a reset link is on its way.';
+    ok.style.display = 'block';
+  } finally { btn.disabled = false; btn.textContent = 'Send reset link'; }
+});
+
+// ── Set new password (recovery flow) ──────────────────────────────
+document.getElementById('setPwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const pw  = document.getElementById('newPw').value;
+  const pw2 = document.getElementById('newPw2').value;
+  const err = document.getElementById('setPwError');
+  const btn = document.getElementById('setPwBtn');
+  err.textContent = '';
+  if (pw.length < 8) { err.textContent = 'Password must be at least 8 characters'; return; }
+  if (pw !== pw2)    { err.textContent = 'Passwords do not match'; return; }
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    const { error } = await supa.auth.updateUser({ password: pw });
+    if (error) throw error;
+    // Clear hash and re-init
+    history.replaceState({}, '', window.location.pathname);
+    const { data: { session } } = await supa.auth.getSession();
+    if (session) await onAuthed(session); else setState('login');
+  } catch(e) {
+    err.textContent = e.message || 'Could not update password';
+    btn.disabled = false; btn.textContent = 'Update password';
+  }
 });
 
 document.getElementById('navDropdownBtn').addEventListener('click', e => {
